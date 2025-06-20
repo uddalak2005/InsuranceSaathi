@@ -1,5 +1,6 @@
 import express, { urlencoded } from "express";
-import cors from "cors"
+import cors from "cors";
+import authRoutes from "./routes/auth.routes.js"
 
 
 const app = express();
@@ -11,6 +12,8 @@ app.use(cors({
 }));
 app.use(urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use("/auth", authRoutes);
 
 
 
