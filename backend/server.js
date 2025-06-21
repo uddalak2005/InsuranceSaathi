@@ -1,6 +1,6 @@
 import app from "./app.js";
-import mongoose from "mongoose"
 import dotenv from "dotenv";
+import mongoose from "mongoose"
 
 dotenv.config();
 
@@ -25,9 +25,10 @@ async function connectDB() {
 }
 
 connectDB().then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
+    app.listen(PORT, () => {
         console.log(`app is listening on port ${PORT}`);
     });
 }).catch(err => {
     console.log(err);
 });
+

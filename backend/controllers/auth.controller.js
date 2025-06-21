@@ -11,7 +11,7 @@ import Insurer from "../models/insurer.model.js";
 
 class AuthController {
 
-    constructor() {
+    constructor(FIREBASE_API_KEY, JWT_SECRET) {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
 
@@ -23,42 +23,53 @@ class AuthController {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
+
     }
 
-    PolicyHolderSignUp = async (req, res) => {
+    async PolicyHolderSignUp(req, res) {
         const { email, password, name, phone } = req.body;
+        console.log(req.body);
 
         try {
             const userRecord = await admin.auth().createUser({
                 email, password
             });
 
+            console.log(userRecord);
+
             const firebaseUid = userRecord.uid;
 
             await admin.auth().setCustomUserClaims(firebaseUid, { role: 'policyHolder' });
 
-            await User.create({ firebaseUid, name, email, phone });
+            const newUserRecord = await User.create({ firebaseUid, name, email, phone });
 
             const token = jwt.sign({ firebaseUid }, process.env.JWT_SECRET, {
                 expiresIn: '5d'
             });
 
+            //For Test
             res.setHeader("Set-Cookie", cookie.serialize("session", token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: false,           // Use true only in HTTPS production
+                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
                 maxAge: 60 * 60 * 24 * 5,
-                sameSite: 'strict',
-                path: '/',
+                path: '/'
             }));
 
-            res.status(201).json({ message: "Created User Successfully" });
+
+
+            res.status(201).json({
+                message: "Created User Successfully",
+                newUserRecord,
+                token
+            });
 
         } catch (err) {
             res.status(400).json({ message: err?.message });
         }
     }
 
-    InsurerSignUp = async (req, res) => {
+    async InsurerSignUp(req, res) {
         const { orgName, email, password } = req.body;
 
         try {
@@ -80,31 +91,33 @@ class AuthController {
                 expiresIn: '5d'
             });
 
+            //For Test
             res.setHeader("Set-Cookie", cookie.serialize("session", token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: false,           // Use true only in HTTPS production
+                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
                 maxAge: 60 * 60 * 24 * 5,
-                sameSite: 'strict',
                 path: '/'
             }));
 
-            res.status(201).json({ message: "Insurer created Succesfully" });
+
+
+            res.status(201).json({
+                message: "Insurer created Succesfully",
+                token
+            });
+
         } catch (err) {
             console.log(err?.message);
-            res.status(400).json({ message: err?.message });
+            res.status(400).json({ message: err.message });
         }
     }
 
-    login = async (req, res) => {
+    async login(req, res) {
         const { email, password } = req.body;
 
-        console.log("Login attempt for:", email);
-
         try {
-            console.log("Using Firebase API Key:", process.env.FIREBASE_API_KEY ? "Present" : "Missing");
-            console.log("Request payload:", { email, password: "***", returnSecureToken: true });
-            
-            // Use Firebase REST API for password authentication
+
             const response = await axios.post(
                 `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
                 {
@@ -114,15 +127,11 @@ class AuthController {
                 }
             );
 
-            console.log("Firebase auth successful");
-
             const { idToken, localId: firebaseUid } = response.data;
 
-            // Verify the ID token with Admin SDK to get custom claims
             const decodedToken = await admin.auth().verifyIdToken(idToken);
             const role = decodedToken.role;
 
-            console.log("User found with role:", role);
 
             if (!role) {
                 return res.status(404).json({ message: "No Role Defined, Contact Admin" });
@@ -134,7 +143,6 @@ class AuthController {
             } else if (role === 'insurer') {
                 user = await Insurer.findOne({ firebaseUid });
             } else {
-                console.log("Unknown Role:", role);
                 return res.status(400).json({ message: "Unknown Role" });
             }
 
@@ -142,17 +150,20 @@ class AuthController {
                 return res.status(404).json({ message: "No Such User in DB" });
             }
 
-            const jwtToken = jwt.sign({ firebaseUid }, process.env.JWT_SECRET, {
+            const token = jwt.sign({ firebaseUid }, process.env.JWT_SECRET, {
                 expiresIn: "5d",
             });
 
-            res.setHeader("Set-Cookie", cookie.serialize("session", jwtToken, {
+            //For Test
+            res.setHeader("Set-Cookie", cookie.serialize("session", token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: false,           // Use true only in HTTPS production
+                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
                 maxAge: 60 * 60 * 24 * 5,
-                sameSite: "strict",
-                path: "/",
+                path: '/'
             }));
+
+
 
             let responseUser;
 
@@ -177,31 +188,17 @@ class AuthController {
 
             res.status(200).json({
                 message: "Login Successful",
+                token,
                 ...responseUser
             });
 
         } catch (err) {
-            console.log("Login error:", err?.message);
-            console.log("Full error object:", JSON.stringify(err, null, 2));
-            
-            // Handle Firebase REST API errors
-            if (err?.response?.data?.error?.message) {
-                const firebaseError = err.response.data.error.message;
-                console.log("Firebase error message:", firebaseError);
-                if (firebaseError.includes('INVALID_PASSWORD') || firebaseError.includes('EMAIL_NOT_FOUND') || firebaseError.includes('INVALID_LOGIN_CREDENTIALS')) {
-                    return res.status(401).json({ message: "Invalid email or password" });
-                } else if (firebaseError.includes('TOO_MANY_ATTEMPTS_TRY_LATER')) {
-                    return res.status(429).json({ message: "Too many failed attempts. Try again later." });
-                } else {
-                    return res.status(400).json({ message: firebaseError });
-                }
-            } else {
-                return res.status(400).json({ message: err?.message || "Login failed" });
-            }
+            console.log(err?.message);
+            res.status(400).json({ message: err?.message });
         }
     }
 
-    logout = async (req, res) => {
+    async logout(req, res) {
         res.setHeader("Set-Cookie", cookie.serialize("session", "", {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -214,5 +211,5 @@ class AuthController {
 
 }
 
-const authController = new AuthController();
+const authController = new AuthController(process.env.FIREBASE_API_KEY, process.env.JWT_SECRET);
 export default authController;
