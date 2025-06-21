@@ -124,7 +124,7 @@ const PolicySection = () => {
     const jwt = localStorage.getItem("JWT");
   
     try {
-      const response = await fetch(`http://192.168.128.12:3000${routes[insuranceType]}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}${routes[insuranceType]}`, {
 
         method: 'POST',
       
@@ -142,7 +142,6 @@ const PolicySection = () => {
   
       const data = await response.json();
       console.log("Server response:", data);
-  
       if (!response.ok) {
         throw new Error(data.message || "Failed to submit form");
       }
@@ -170,31 +169,13 @@ const PolicySection = () => {
     }
   };
 
-  // const startAnalysis = () => {
-  //   setAnalysisProgress(0);
-  //   const interval = setInterval(() => {
-  //     setAnalysisProgress((prev) => {
-  //       if (prev >= 100) {
-  //         clearInterval(interval);
-  //         setAnalysisComplete(true);
-  //         toast({
-  //           title: "Policy Analysis Complete",
-  //           description: "Your policy coverage has been successfully analyzed.",
-  //         });
-  //         return 100;
-  //       }
-  //       return prev + 10;
-  //     });
-  //   }, 300);
-  // };
-
-  const coverageData = [
-    { type: "Auto Liability", covered: true, limit: "$500,000", deductible: "$500" },
-    { type: "Collision", covered: true, limit: "$50,000", deductible: "$1,000" },
-    { type: "Comprehensive", covered: true, limit: "$50,000", deductible: "$500" },
-    { type: "Medical Payments", covered: true, limit: "$10,000", deductible: "$0" },
-    { type: "Uninsured Motorist", covered: false, limit: "N/A", deductible: "N/A" }
-  ];
+  // const coverageData = [
+  //   { type: "Auto Liability", covered: true, limit: "$500,000", deductible: "$500" },
+  //   { type: "Collision", covered: true, limit: "$50,000", deductible: "$1,000" },
+  //   { type: "Comprehensive", covered: true, limit: "$50,000", deductible: "$500" },
+  //   { type: "Medical Payments", covered: true, limit: "$10,000", deductible: "$0" },
+  //   { type: "Uninsured Motorist", covered: false, limit: "N/A", deductible: "N/A" }
+  // ];
 
   return (
     <div className="space-y-6">

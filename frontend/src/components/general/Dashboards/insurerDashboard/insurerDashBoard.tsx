@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { FileText, AlertTriangle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
-import type { ClaimData } from './types';
+// import type { ClaimData } from './types';
 import { useEffect } from 'react';
 
 interface InsurerDashboardProps {
-  onClaimSelect: (claim: ClaimData) => void;
+  onClaimSelect: (claim : any) => void;
   onViewChange: (view: 'dashboard' | 'processing' | 'appeals') => void;
 }
 
@@ -18,7 +18,7 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
    useEffect(() => {
       const fetchClaimHistory = async() => {
       try {
-        const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}claim/getAllClaims`, {
           method : 'GET',
           headers : {
             'token' : localStorage.getItem("JWT")
@@ -48,12 +48,13 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
       return "low";
     }
 
-    const getrandomScore = () => {
-      const random = Math.random();
-      if(random<0.50) return Math.floor(Math.random() * (55 - 11 + 1)) + 11;
-      if(random>0.50) return Math.floor(Math.random() * (99 - 55 + 1)) + 55;
+    // const getrandomScore = () => {
+    //   const random = Math.random();
+    //   if(random<0.50) return Math.floor(Math.random() * (55 - 11 + 1)) + 11;
+    //   if(random>0.50) return Math.floor(Math.random() * (99 - 55 + 1)) + 55;
 
-    }
+    // }
+    
   // const mockClaims: ClaimData[] = [
   //   {
   //     id: 'CLM-001',
@@ -126,7 +127,7 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
             <FileText className="h-8 w-8 text-blue-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">New Claims</p>
-              <p className="text-2xl font-bold text-blue-400">24</p>
+              <p className="text-2xl font-bold text-blue-400">{ClaimsData.length}</p>
             </div>
           </div>
         </div>
@@ -136,7 +137,7 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
             <Clock className="h-8 w-8 text-yellow-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">In Processing</p>
-              <p className="text-2xl font-bold text-yellow-400">18</p>
+              <p className="text-2xl font-bold text-yellow-400">{ClaimsData.filter((item) => item.claim.status === "Submitted").length}</p>
             </div>
           </div>
         </div>
@@ -146,7 +147,7 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
             <CheckCircle className="h-8 w-8 text-green-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Approved Today</p>
-              <p className="text-2xl font-bold text-green-400">12</p>
+              <p className="text-2xl font-bold text-green-400">{ClaimsData.filter((item)=> item.claim.status === "Accepted").length}</p>
             </div>
           </div>
         </div>

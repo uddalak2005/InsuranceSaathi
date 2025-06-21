@@ -1,11 +1,12 @@
 import axios from 'axios';
+const base_url = import.meta.env.VITE_BACKEND_URL;
 
 export const PolicyHolderSignUpRoute = async (formdata) => {
   try {
     console.log("📤 Sending policy holder signup data:", formdata);
 
     const response = await axios.post(
-      'http://192.168.128.12:3000/auth/policyHolder/signUp',
+      `${base_url}/auth/policyHolder/signUp`,
       formdata,
     );
 
@@ -34,7 +35,7 @@ export const PolicyHolderKYCRoute = async (formdata) => {
     console.log("📤 Sending Policy Holder KYC data:", formdata);
 
     const response = await axios.patch(
-      'http://192.168.128.12:3000/onboarding/policyHolder',
+      `${base_url}/onboarding/policyHolder`,
       formdata,
       {
         headers: {
@@ -69,7 +70,7 @@ export const PolicyHolderKYCRoute = async (formdata) => {
 
 export const PolicyHolderSignInRoute = async (formdata) => {
   try {
-    const response = await axios.post('http://192.168.128.12:3000/auth/policyHolder/login', formdata,
+    const response = await axios.post(`${base_url}auth/policyHolder/login`, formdata,
     );
     return response; // Already parsed JSON
   } catch (error) {

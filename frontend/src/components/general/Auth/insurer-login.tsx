@@ -26,12 +26,27 @@ const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // You can add validation or API call here
-    InsurerSignInRoute(formData);
-    console.log("Login submitted:", formData);
-
-    // Example navigation after login
-    navigate("/insurer-dashboard")
+  
+    try {
+      const response = await InsurerSignInRoute(formData)
+      
+      // Assuming success means a token or user object exists in response
+      if (response.status >=200 && response.status<300) {
+        console.log("Login successful:", response)
+          navigate("/insurer-dashboard");
+      } else {
+        console.error("Unexpected response:", response)
+        alert("Login failed. Please check your credentials.")
+      }
+    } catch (error: any) {
+      // Handle specific error codes/messages if needed
+      if (error.response?.status === 401) {
+        alert("Invalid credentials")
+      } else {
+        alert("Something went wrong during login.")
+      }
+      console.error("Login error:", error)
+    }
   }
 
   return (
