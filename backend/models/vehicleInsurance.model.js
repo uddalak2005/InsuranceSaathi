@@ -17,6 +17,7 @@ const vehicleInsuranceSchema = new mongoose.Schema({
     ownerName : String,
     email : String,
     govtId : String,
+    claimAmt: Number,
     vehicleIdentity : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Upload'

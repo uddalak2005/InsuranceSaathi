@@ -169,7 +169,7 @@ class CheckCoverageController {
                 govtId,
                 policyDocs: fileMetaMap?.policyDocs?.[0]?._id || null,
                 finalBill: fileMetaMap?.finalBill?.[0]?._id || null,
-                passbook: fileMetaMap?.passbook?.[0]?._id || null
+                medicalDocs: fileMetaMap?.medicalDocs?.[0]?._id || null
             });
 
             const newClaimCheck = await CheckPolicyCoverage.create({
@@ -201,57 +201,73 @@ class CheckCoverageController {
         const { id } = req.params;
 
         try {
+            console.log("=== getScore Debug ===");
+            console.log("Looking for CheckPolicyCoverage with ID:", id);
+            console.log("User firebaseUid:", req.user.firebaseUid);
+            
             const claimRecord = await CheckPolicyCoverage.findById(id);
 
+            console.log("Found claimRecord:", claimRecord);
 
             if (!claimRecord) {
+                console.log("No CheckPolicyCoverage record found with ID:", id);
                 return res.status(404).json({ message: "No record of claims found" });
             }
 
+            console.log("Claim record found:", {
+                id: claimRecord._id,
+                firebaseUid: claimRecord.firebaseUid,
+                policyType: claimRecord.policyType,
+                policyModel: claimRecord.policyModel,
+                details: claimRecord.details
+            });
+
             let Model;
+            let populateFields = [];
+            let aiResponse = null;
+
+            // Dynamically resolve model and populate fields
             if (claimRecord.policyModel === "LifeInsurance") {
                 Model = LifeInsurance;
-                const insureDoc = await Model.findById(claimRecord.details);
-
-                if (!insureDoc) {
-                    return res.status(404).json({ message: "Insurance Data not found" });
-                }
-
-                const aiResponse = await getAIInsights.getAIClaimCheckVehicle(insureDoc);
-            }
-            else if (claimRecord.policyModel === "VehicleInsurance") {
+                populateFields = ["insuranceClaimForm", "policyDocument", "deathCert", "hospitalDocument", "fir", "nominee.passBook"];
+            } else if (claimRecord.policyModel === "VehicleInsurance") {
                 Model = VehicleInsurance;
-                const insureDoc = await Model.findById(claimRecord.details);
-
-                if (!insureDoc) {
-                    return res.status(404).json({ message: "Insurance Data not found" });
-                }
-
-                try {
-                    const aiResponse = await getAIInsights.getAIClaimCheckVehicle(insureDoc);
-                } catch (err) {
-                    console.error("AI Analysis Error:", err.message);
-                    return res.status(500).json({ message: "AI processing failed", error: err.message });
-                }
-
-            }
-            else if (claimRecord.policy === "HealthInsurance") {
+                populateFields = ["claimForm", "vehicleIdentity", "damageImage", "recipt"];
+            } else if (claimRecord.policyModel === "HealthInsurance") {
                 Model = HealthInsurance;
-                const insureDoc = await Model.findById(claimRecord.details);
-
-                if (!insureDoc) {
-                    return res.status(404).json({ message: "Insurance Data not found" });
-                }
-            }
-            else {
-                throw new Error("Unknown Policy");
+                populateFields = ["policyDocs", "finalBill", "medicalDocs"];
+            } else {
+                return res.status(400).json({ message: "Unknown policy model" });
             }
 
+            // Fetch and populate insurance document
+            const insureDoc = await Model.findById(claimRecord.details).populate(populateFields);
 
+            if (!insureDoc) {
+                return res.status(404).json({ message: "Insurance Data not found" });
+            }
 
-            //AI Response from Sayantan
+            console.log(insureDoc);
+
+            // Call respective AI function
+            if (claimRecord.policyModel === "VehicleInsurance") {
+                aiResponse = await getAIInsights.getAIClaimCheckVehicle(insureDoc);
+            } else if (claimRecord.policyModel === "LifeInsurance") {
+                aiResponse = await getAIInsights.getAIClaimCheckLife(insureDoc);
+            } else if (claimRecord.policyModel === "HealthInsurance") {
+                aiResponse = await getAIInsights.getAIClaimCheckHealth(insureDoc);
+            } else {
+                return res.status(400).json({ message: "Unsupported policy type for AI analysis" });
+            }
             
-
+            console.log("ai res ->", aiResponse);
+            
+            // Check if AI response is valid
+            if (!aiResponse) {
+                return res.status(500).json({ message: "AI analysis failed - no response received" });
+            }
+            
+            // Save AI results
             claimRecord.aiScore = aiResponse.aiScore;
             claimRecord.aiConfidence = aiResponse.aiConfidence;
             claimRecord.aiSuggestions = aiResponse.aiSuggestions;
@@ -260,17 +276,15 @@ class CheckCoverageController {
 
             return res.status(200).json({
                 message: "AI analysis completed",
-                data: {
-                    aiScore: aiResponse.aiScore,
-                    aiConfidence: aiResponse.aiConfidence,
-                    aiSuggestions: aiResponse.aiSuggestions
-                }
+                data: aiResponse
             });
+
         } catch (err) {
             console.error("AI Analysis Error:", err.message);
             return res.status(500).json({ message: "AI processing failed", error: err.message });
         }
     }
+
 
     async getAllClaimCheckData(req, res) {
         try {
@@ -291,7 +305,7 @@ class CheckCoverageController {
                 let Model;
                 if (claimCheck.policyModel === "LifeInsurance") Model = LifeInsurance;
                 else if (claimCheck.policyModel === "VehicleInsurance") Model = VehicleInsurance;
-                else if (claimCheck.policy === "HealthInsurance") Model = HealthInsurance;
+                else if (claimCheck.policyModel === "HealthInsurance") Model = HealthInsurance;
                 else {
                     throw new Error("Unknown Policy");
                 }
@@ -308,7 +322,7 @@ class CheckCoverageController {
             });
         } catch (err) {
             console.log(err.message);
-            return res.staus(200).json({
+            return res.status(500).json({
                 message: "Failed to fetch claim check record",
                 error: err.message
             });
@@ -338,7 +352,7 @@ class CheckCoverageController {
 
             const insuranceDetails = await Model.findById(insuranceId);
 
-            if (!claimRecord) {
+            if (!insuranceDetails) {
                 return res.status(404).json({ message: "Insurance of this claim Not found" });
             }
 

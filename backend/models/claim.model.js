@@ -33,7 +33,9 @@ const claimSchema = new mongoose.Schema({
     aiSuggestions: { type: String },
     fraudFlag: { type: Boolean, default: false },
     riskFactors : [{
-        type : String
+        description : String,
+        label : String,
+        severity : String
     }],
     rejectionReason: { type: String, default: null },
 

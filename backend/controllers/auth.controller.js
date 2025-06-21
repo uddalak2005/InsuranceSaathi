@@ -15,10 +15,22 @@ class AuthController {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
 
-        const serviceAccount = JSON.parse(
-            readFileSync(path.join(__dirname, "../insuredsaathi-firebase-adminsdk-fbsvc-283eedf616.json"), "utf8")
-        );
-
+        // Try to use environment variable first, fallback to JSON file
+        let serviceAccount;
+        try {
+            if (process.env.FIREBASE_ADMIN_SDK) {
+                serviceAccount = JSON.parse(
+                    Buffer.from(process.env.FIREBASE_ADMIN_SDK, 'base64').toString('utf8')
+                );
+            } else {
+                // Fallback to reading the JSON file directly
+                const serviceAccountPath = path.join(__dirname, '..', 'insuredsaathi-firebase-adminsdk-fbsvc-283eedf616.json');
+                serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+            }
+        } catch (error) {
+            console.error('Error loading Firebase admin SDK:', error.message);
+            throw new Error('Failed to load Firebase admin SDK configuration');
+        }
 
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
