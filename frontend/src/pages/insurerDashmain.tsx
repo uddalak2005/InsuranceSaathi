@@ -3,10 +3,40 @@ import { InsurerDashboard } from '../components/general/Dashboards/insurerDashbo
 import { ClaimProcessingFlow } from '../components/general/Dashboards/insurerDashboard/ClaimProcessingFlow';
 import { AppealsSystem } from '../components/general/Dashboards/insurerDashboard/AppealSystem';
 import type { ClaimData } from '../components/general/Dashboards/insurerDashboard/types';
+import { useEffect } from 'react';
 
 const InsurerDashMain = () => {
   const [selectedClaim, setSelectedClaim] = useState<ClaimData | null>(null);
   const [activeView, setActiveView] = useState<'dashboard' | 'processing' | 'appeals'>('dashboard');
+  const [ClaimsData, setClaimsData] = useState([]);
+
+  //Claim History fetch
+  useEffect(() => {
+    const fetchClaimHistory = async() => {
+    try {
+      const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+        method : 'GET',
+        headers : {
+          'token' : localStorage.getItem("JWT")
+        }
+      });
+      if(response.ok){
+      const data = await response.json();
+      setClaimsData(data.data);
+      console.log("Claims fetched");
+      console.log(data.data);
+      }
+      else{
+        console.log("Response error : ", response.status);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  fetchClaimHistory();
+  
+  }, [])
+
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-white">

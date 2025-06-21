@@ -25,7 +25,7 @@ const claimSchema = new mongoose.Schema({
     claimDocs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Upload' }],
     status: {
         type: String,
-        enum: ['Instantiated','Submitted', 'UnderReview', 'Settled', 'Rejected', 'Excalated'],
+        enum: ['Instantiated','Submitted', 'UnderReview', 'Settled', 'Rejected', 'Escalated'],
         default: 'Instantiated'
     },
     aiScore: { type: Number, min: 0, max: 100 },

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Building2, CheckCircle, FileText, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function AuthDivider(props) {
+export default function AuthDividerSignUp({page ='signup'}) {
   const [currentSide, setCurrentSide] = useState<'left' | 'right' | null>(null);
   const navigate = useNavigate();
 
@@ -11,7 +11,7 @@ export default function AuthDivider(props) {
     if (side === 'left') {
       navigate('/user-auth'); 
     } else {
-      navigate('/insurer-signup');
+      navigate('/insurer-auth');
     }
   };
 
@@ -20,7 +20,7 @@ export default function AuthDivider(props) {
 
       {/* Sliding Overlay */}
       <motion.div
-        className="absolute top-0 bottom-0 w-1/2 z-0 rounded-lg"
+        className="absolute top-0 bottom-0 w-1/2 z-0"
         animate={{
           left: currentSide === 'left' ? 0 : currentSide === 'right' ? '50%' : '0%',
         }}
@@ -63,7 +63,7 @@ export default function AuthDivider(props) {
           ))}
         </div>
         <h2 className="text-2xl font-bold mb-4">Your Insurance, Simplified</h2>
-        <h1 className="text-4xl font-bold mb-4">{props.page == 'signup' ? 'Sign up as policy holder' : 'Sign in as policy holder'}</h1>
+        <h1 className="text-4xl font-bold mb-4">{page == 'signup' ? 'Sign up as policy holder' : 'Sign in as policy holder'}</h1>
         <p className="text-blue-100 text-center">Track claims, upload documents, and get instant updates on your policies</p>
       </div>
 
@@ -86,7 +86,7 @@ export default function AuthDivider(props) {
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-4">Secure Insurance Platform</h2>
-          <h1 className="text-4xl font-bold mb-4">{props.page == 'signup' ? 'Sign up as insurer' : 'Sign in as insurer'}</h1>
+          <h1 className="text-4xl font-bold mb-4">{page == 'signup' ? 'Sign up as insurer' : 'Sign in as insurer'}</h1>
           <p className="text-blue-100 mb-6">
             Join our network of trusted insurance providers and streamline your operations with AI-powered auditing
           </p>

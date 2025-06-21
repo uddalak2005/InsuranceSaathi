@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FileText, AlertTriangle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import type { ClaimData } from './types';
+import { useEffect } from 'react';
 
 interface InsurerDashboardProps {
   onClaimSelect: (claim: ClaimData) => void;
@@ -11,51 +12,101 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
   onClaimSelect,
   onViewChange,
 }) => {
-  const mockClaims: ClaimData[] = [
-    {
-      id: 'CLM-001',
-      policyNumber: 'POL-12345',
-      claimantName: 'John Smith',
-      claimType: 'Auto Accident',
-      amount: 15000,
-      dateSubmitted: '2024-06-15',
-      status: 'new',
-      priority: 'high',
-    },
-    {
-      id: 'CLM-002',
-      policyNumber: 'POL-67890',
-      claimantName: 'Sarah Johnson',
-      claimType: 'Property Damage',
-      amount: 8500,
-      dateSubmitted: '2024-06-14',
-      status: 'processing',
-      priority: 'medium',
-    },
-    {
-      id: 'CLM-003',
-      policyNumber: 'POL-11111',
-      claimantName: 'Mike Davis',
-      claimType: 'Medical',
-      amount: 25000,
-      dateSubmitted: '2024-06-13',
-      status: 'ai-review',
-      priority: 'high',
-      aiRiskScore: 0.75,
-    },
-  ];
+
+  const [ClaimsData,setClaimsData] = useState([]);
+
+   useEffect(() => {
+      const fetchClaimHistory = async() => {
+      try {
+        const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+          method : 'GET',
+          headers : {
+            'token' : localStorage.getItem("JWT")
+          }
+        });
+        if(response.ok){
+        const data = await response.json();
+        setClaimsData(data.data);
+        console.log("Claims fetched");
+        console.log(data.data);
+        }
+        else{
+          console.log("Response error : ", response.status);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchClaimHistory();
+    
+    }, [])
+
+    const getRandomPriority = () => {
+      const random = Math.random();
+      if (random < 0.33) return "medium";
+      if (random < 0.66) return "high";
+      return "low";
+    }
+
+    const getrandomScore = () => {
+      const random = Math.random();
+      if(random<0.50) return Math.floor(Math.random() * (55 - 11 + 1)) + 11;
+      if(random>0.50) return Math.floor(Math.random() * (99 - 55 + 1)) + 55;
+
+    }
+  // const mockClaims: ClaimData[] = [
+  //   {
+  //     id: 'CLM-001',
+  //     policyNumber: 'POL-12345',
+  //     claimantName: 'John Smith',
+  //     claimType: 'Auto Accident',
+  //     amount: 15000,
+  //     dateSubmitted: '2024-06-15',
+  //     status: 'new',
+  //     priority: 'high',
+  //   },
+  //   {
+  //     id: 'CLM-002',
+  //     policyNumber: 'POL-67890',
+  //     claimantName: 'Sarah Johnson',
+  //     claimType: 'Property Damage',
+  //     amount: 8500,
+  //     dateSubmitted: '2024-06-14',
+  //     status: 'processing',
+  //     priority: 'medium',
+  //   },
+  //   {
+  //     id: 'CLM-003',
+  //     policyNumber: 'POL-11111',
+  //     claimantName: 'Mike Davis',
+  //     claimType: 'Medical',
+  //     amount: 25000,
+  //     dateSubmitted: '2024-06-13',
+  //     status: 'ai-review',
+  //     priority: 'high',
+  //     aiRiskScore: 0.75,
+  //   },
+  // ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-yellow-500';
-      case 'processing': return 'bg-blue-500';
-      case 'ai-review': return 'bg-purple-500';
-      case 'approved': return 'bg-green-500';
-      case 'rejected': return 'bg-red-500';
-      case 'appeal': return 'bg-orange-500';
-      default: return 'bg-gray-500';
+      case "Instantiated":
+        return "bg-blue-300 text-blue-800 border-blue-200";
+      case "UnderReview":
+        return "bg-yellow-300 text-yellow-800 border-yellow-200";
+      case "Submitted":
+        return "bg-gray-300 text-gray-800 border-gray-200";
+      case "Escalated":
+        return "bg-purple-300 text-purple-800 border-purple-200";
+      case "Settled":
+        return "bg-green-300 text-green-800 border-green-200";
+      case "Rejected":
+        return "bg-red-300 text-red-800 border-red-200";
+      default:
+        return "bg-slate-300 text-slate-800 border-slate-200";
     }
   };
+
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -118,10 +169,10 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {mockClaims.map((claim) => (
+            {ClaimsData.map((claim, index) => (
               <div
-                key={claim.id}
-                className="bg-white shadow-sm p-4 rounded-lg border hover:border-blue-500 transition-colors cursor-pointer"
+                key={`CLM - 00${index+1}`}
+                className="bg-white shadow-sm text-base p-4 rounded-lg border hover:border-blue-500 transition-colors cursor-pointer"
                 onClick={() => {
                   onClaimSelect(claim);
                   onViewChange('processing');
@@ -130,20 +181,20 @@ export const InsurerDashboard: React.FC<InsurerDashboardProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-500">{claim.id}</span>
-                      <span className="text-sm text-gray-400">{claim.claimantName}</span>
+                      <span className="font-medium text-gray-500">{`CLM - 00${index+1}`}</span>
+                      <span className="text-sm text-gray-400">{claim.insuranceDetails.ownerName ? claim.insuranceDetails.ownerName : claim.insuranceDetails.policyHolderName}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm text-gray-300">{claim.claimType}</span>
-                      <span className="text-sm text-gray-400">${claim.amount.toLocaleString()}</span>
+                      <span className="text-sm text-gray-300">{claim.claim.policyType}</span>
+                      <span className="text-sm text-gray-400">${6500 + 2000*(index+1)}</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className={`text-sm font-medium ${getPriorityColor(claim.priority)}`}>
-                      {claim.priority.toUpperCase()}
+                    <span className={`text-sm font-medium ${getPriorityColor(getRandomPriority())}`}>
+                      {`${getRandomPriority().toUpperCase()} PRIORITY`}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(claim.status)}`}>
-                      {claim.status.replace('-', ' ').toUpperCase()}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(claim.claim.status)}`}>
+                      {claim.claim.status.toUpperCase()}
                     </span>
                     {claim.aiRiskScore && (
                       <span className="text-sm text-purple-400">

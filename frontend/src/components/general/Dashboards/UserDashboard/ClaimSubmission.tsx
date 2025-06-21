@@ -1,250 +1,285 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Upload, FileText , Shield } from "lucide-react";
+import { Upload, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Info } from 'lucide-react';
+import { HealthInsuranceForm } from '../../forms/HealthForm';
+import { LifeInsuranceForm } from '../../forms/lifeform';
+import { VehicleInsuranceForm } from '../../forms/vehicleForm';
 
 const ClaimSubmission = () => {
-  const [claimType, setClaimType] = useState("");
-  const [uploadedDocs, setUploadedDocs] = useState<File[]>([]);
-  const [riskScore, setRiskScore] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitProgress, setSubmitProgress] = useState(0);
+  const [insuranceType, setInsuranceType] = useState("Life insurance");
+  const [insuranceFormData, setinsuranceFormData] = useState({});
+
+  useEffect(()=>{
+    console.log(insuranceFormData);
+  },[insuranceFormData])
+
   const { toast } = useToast();
 
-  const handleDocUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setUploadedDocs(prev => [...prev, ...files]);
-    
-    // Simulate risk score calculation
-    setTimeout(() => {
-      const score = Math.floor(Math.random() * 40) + 10; // Random score between 10-50 (low risk)
-      setRiskScore(score);
-    }, 1500);
-  };
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({});
 
-  const removeDocument = (index: number) => {
-    setUploadedDocs(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmitClaim = () => {
-    if (!claimType || uploadedDocs.length === 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields and upload documents.",
-        variant: "destructive",
-      });
-      return;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, label: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFiles((prev) => ({ ...prev, [label]: file }));
+      console.log(uploadedFiles);
     }
+  };
 
-    setIsSubmitting(true);
-    setSubmitProgress(0);
+  //
 
-    const interval = setInterval(() => {
-      setSubmitProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsSubmitting(false);
-          toast({
-            title: "Claim Submitted Successfully",
-            description: "Your claim has been submitted and is now under review. Claim ID: CLM-2024-003",
-          });
-          return 100;
+  const renderForm = () => {
+    switch (insuranceType) {
+      case "Life insurance":
+        return <LifeInsuranceForm onSubmit={(formData) => setinsuranceFormData(formData)}/>;
+      case "Health insurance":
+        return <HealthInsuranceForm onSubmit={(formData) => setinsuranceFormData(formData)}/>;
+      case "Vehicle insurance":
+        return <VehicleInsuranceForm onSubmit={(formData) => setinsuranceFormData(formData)}/>;
+      default:
+        return null;
+    }
+  };
+
+  const fileUploadContents = () => {
+    switch (insuranceType) {
+      case "Life insurance":
+        return [
+          "insuranceClaimForm",
+          "passBook",
+          "policyDocument",
+          "deathCert",
+          "hospitalDocument",
+          "fir",
+        ];
+        break;
+      case "Health insurance":
+        return [
+          "policyDocs",
+          "finalBill",
+          "passbook",
+        ];
+        break;
+      case "Vehicle insurance":
+        return [
+          "claimForm",
+          "vehicleIdentity",
+          "damageImage",
+          "recipt"
+        ];
+        break;
+      default:
+        return null;
+    }
+  }
+
+  const buildFormData = (
+    formValues: Record<string, any>,
+    uploadedFiles: Record<string, File>
+  ): FormData => {
+    const formData = new FormData();
+  
+    // Helper: flatten and append form values
+    const appendFields = (data: any, parentKey = "") => {
+      Object.entries(data).forEach(([key, value]) => {
+        const fullKey = parentKey ? `${parentKey}.${key}` : key;
+  
+        if (value instanceof Blob) {
+          formData.append(fullKey, value); // Not expected here, but safe
+        } else if (typeof value === "object" && value !== null) {
+          appendFields(value, fullKey); // Recursively flatten objects
+        } else {
+          formData.append(fullKey, String(value ?? ""));
         }
-        return prev + 20;
       });
-    }, 500);
+    };
+  
+    appendFields(formValues);
+  
+    // Append uploaded files
+    Object.entries(uploadedFiles).forEach(([label, file]) => {
+      const key = label; // e.g., "Death certificate" -> "death_certificate"
+      formData.append(key, file);
+    });
+  
+    return formData;
   };
 
-  const getRiskScoreColor = (score: number) => {
-    if (score <= 30) return "text-green-600 bg-green-100";
-    if (score <= 60) return "text-amber-600 bg-amber-100";
-    return "text-red-600 bg-red-100";
+
+  const submitForm = async () => {
+    const formData = buildFormData(insuranceFormData, uploadedFiles);
+  
+    console.log("Merged formData contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    const routes = {
+      'Health insurance': '/claim/healthInsurance',
+      'Life insurance': '/claim/lifeInsurance',
+      'Vehicle insurance': '/claim/vehicleInsurance',
+    };
+  
+    // Ensure insuranceType is available from state or passed in
+    const jwt = localStorage.getItem("JWT");
+  
+    try {
+      const response = await fetch(`http://192.168.128.12:3000${routes[insuranceType]}`, {
+
+        method: 'POST',
+      
+        headers: {
+      
+          'token': jwt || '', // ✅ if your backend is using this custom header
+      
+        },
+      
+        credentials: "include", // ✅ if using cookies for session
+      
+        body: formData,
+      
+    });
+  
+      const data = await response.json();
+      console.log("Server response:", data);
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit form");
+      }
+  
+      // handle success (e.g., navigate or show alert)
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("Something went wrong while submitting the form.");
+    }
   };
 
-  const getRiskScoreLabel = (score: number) => {
-    if (score <= 30) return "Low Risk";
-    if (score <= 60) return "Medium Risk";
-    return "High Risk";
+  const getDocumentInfo = (type: string) => {
+    switch (type) {
+      case "Life insurance":
+        return "Upload the policy bond or e-policy PDF issued by your insurer.";
+        break;
+      case "Health insurance":
+        return "Upload the health policy document or insurance card (TPA).";
+        break;
+      case "Vehicle insurance":
+        return "Upload the motor insurance certificate (Form 51) or RC with policy reference.";
+        break;
+      default:
+        return "";
+    }
   };
+
+  // const startAnalysis = () => {
+  //   setAnalysisProgress(0);
+  //   const interval = setInterval(() => {
+  //     setAnalysisProgress((prev) => {
+  //       if (prev >= 100) {
+  //         clearInterval(interval);
+  //         setAnalysisComplete(true);
+  //         toast({
+  //           title: "Policy Analysis Complete",
+  //           description: "Your policy coverage has been successfully analyzed.",
+  //         });
+  //         return 100;
+  //       }
+  //       return prev + 10;
+  //     });
+  //   }, 300);
+  // };
+
+  const coverageData = [
+    { type: "Auto Liability", covered: true, limit: "$500,000", deductible: "$500" },
+    { type: "Collision", covered: true, limit: "$50,000", deductible: "$1,000" },
+    { type: "Comprehensive", covered: true, limit: "$50,000", deductible: "$500" },
+    { type: "Medical Payments", covered: true, limit: "$10,000", deductible: "$0" },
+    { type: "Uninsured Motorist", covered: false, limit: "N/A", deductible: "N/A" }
+  ];
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Submit New Claim</CardTitle>
-          <CardDescription>
-            Complete the form below to submit your insurance claim
-          </CardDescription>
-        </CardHeader>
+      <Card className='py-4 px-2'>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Shield className="h-5 w-5 mr-2 text-blue-700" />
+          Submit claims
+        </CardTitle>
+
+        {/* Dropdown */}
+        <div className="my-6">
+          <label htmlFor="insuranceType" className="block text-sm font-medium text-gray-700 mb-1">
+            Select Insurance Type
+          </label>
+          <select
+            id="insuranceType"
+            name="insuranceType"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={insuranceType}
+            onChange={(e) => setInsuranceType(e.target.value)}
+          >
+            <option>Life insurance</option>
+            <option>Health insurance</option>
+            <option>Vehicle insurance</option>
+          </select>
+        </div>
+
+        {/* Description */}
+        <CardDescription className="my-8 flex items-start text-gray-600">
+          <Info className="w-4 h-4 text-red-500 mt-1 mr-2 text-base" />
+          {getDocumentInfo(insuranceType)}
+        </CardDescription>
+
+                {/* Render Form */}
+          
+          </CardHeader>
+          <div className="mt-4 p-2 h-full w-full">{renderForm()}</div>
+
+          
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="claim-type">Claim Type *</Label>
-              <Select onValueChange={setClaimType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select claim type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="auto-accident">Auto Accident</SelectItem>
-                  <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="property-damage">Property Damage</SelectItem>
-                  <SelectItem value="theft">Theft</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            {fileUploadContents()?.map((label, index) => {
+              const file = uploadedFiles[label];
+              const borderColor = file ? "border-blue-500" : "border-gray-300";
 
-            <div className="space-y-2">
-              <Label htmlFor="incident-date">Incident Date *</Label>
-              <Input type="date" id="incident-date" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description of Incident *</Label>
-            <Textarea 
-              id="description" 
-              placeholder="Please provide a detailed description of what happened..."
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="estimated-amount">Estimated Claim Amount</Label>
-            <Input type="number" id="estimated-amount" placeholder="Enter amount in USD" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Claim Documents</CardTitle>
-          <CardDescription>
-            Upload all relevant documents to support your claim
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <Upload className="h-8 w-8 mx-auto text-gray-400 mb-4" />
-            <div className="space-y-2">
-              <Label htmlFor="claim-docs" className="text-base font-medium cursor-pointer hover:text-blue-700">
-                Upload Documents
-              </Label>
-              <p className="text-sm text-gray-500">
-                Photos, receipts, police reports, medical records, etc.
-              </p>
-              <Input
-                id="claim-docs"
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={handleDocUpload}
-                className="hidden"
-              />
-              <Button asChild variant="outline" className="mt-2">
-                <label htmlFor="claim-docs" className="cursor-pointer">
-                  Choose Files
-                </label>
-              </Button>
-            </div>
-          </div>
-
-          {uploadedDocs.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="font-medium">Uploaded Documents</h4>
-              {uploadedDocs.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-4 w-4 text-blue-700" />
-                    <div>
-                      <p className="text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
+              return (
+                <div
+                  key={index}
+                  className={`border-2 border-dashed ${borderColor} rounded-lg p-8 text-center transition-all`}
+                >
+                  <Input
+                    id={`policy-upload-${index}`}
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => handleFileUpload(e, label)}
+                    className="hidden"
+                  />
+                  <label htmlFor={`policy-upload-${index}`} className="cursor-pointer">
+                    <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium hover:text-blue-700">
+                        {file ? file.name : `${label}`}
                       </p>
+                      <p className="text-sm text-gray-500">PDF, DOC, or DOCX up to 10MB</p>
+                      <Button asChild className="mt-4">
+                        <label htmlFor={`policy-upload-${index}`} className="cursor-pointer">
+                          {file ? "Change File" : "Choose File"}
+                        </label>
+                      </Button>
                     </div>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeDocument(index)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Remove
-                  </Button>
+                  </label>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {riskScore !== null && (
-            <Card className="bg-blue-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-blue-800 flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
-                  AI Risk Assessment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Risk Score</p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-2xl font-bold text-gray-900">{riskScore}</span>
-                      <Badge className={getRiskScoreColor(riskScore)}>
-                        {getRiskScoreLabel(riskScore)}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Progress value={riskScore} className="w-24 mb-2" />
-                    <p className="text-xs text-gray-500">Risk Level</p>
-                  </div>
-                </div>
-                <div className="mt-4 p-3 bg-white rounded border">
-                  <p className="text-sm">
-                    <strong>Assessment:</strong> Based on the uploaded documents and claim details, 
-                    this claim shows {getRiskScoreLabel(riskScore).toLowerCase()} indicators. 
-                    {riskScore <= 30 && "Expected processing time: 3-5 business days."}
-                    {riskScore > 30 && riskScore <= 60 && "Additional verification may be required."}
-                    {riskScore > 60 && "Manual review will be conducted."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              );
+            })}
+          </div>
         </CardContent>
+            <Button
+            onClick={()=>submitForm()}
+            className='bg-black py-6 ml-6 px-8 ml:auto text-white font-bold hover:bg-white hover:text-black hover:font-bold hover:border-2 border-black'>
+              Submit
+            </Button>
       </Card>
-
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSubmitClaim} 
-          disabled={isSubmitting}
-          className="bg-blue-700 hover:bg-blue-800"
-        >
-          {isSubmitting ? "Submitting..." : "Submit Claim"}
-        </Button>
-      </div>
-
-      {isSubmitting && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Processing claim submission...</span>
-                <span>{submitProgress}%</span>
-              </div>
-              <Progress value={submitProgress} className="w-full" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
