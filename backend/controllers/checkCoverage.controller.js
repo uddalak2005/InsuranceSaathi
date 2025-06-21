@@ -256,8 +256,17 @@ class CheckCoverageController {
                 aiResponse = await getAIInsights.getAIClaimCheckLife(insureDoc);
             } else if (claimRecord.policyModel === "HealthInsurance") {
                 aiResponse = await getAIInsights.getAIClaimCheckHealth(insureDoc);
+            } else {
+                return res.status(400).json({ message: "Unsupported policy type for AI analysis" });
             }
+            
             console.log("ai res ->", aiResponse);
+            
+            // Check if AI response is valid
+            if (!aiResponse) {
+                return res.status(500).json({ message: "AI analysis failed - no response received" });
+            }
+            
             // Save AI results
             claimRecord.aiScore = aiResponse.aiScore;
             claimRecord.aiConfidence = aiResponse.aiConfidence;
@@ -296,7 +305,7 @@ class CheckCoverageController {
                 let Model;
                 if (claimCheck.policyModel === "LifeInsurance") Model = LifeInsurance;
                 else if (claimCheck.policyModel === "VehicleInsurance") Model = VehicleInsurance;
-                else if (claimCheck.policy === "HealthInsurance") Model = HealthInsurance;
+                else if (claimCheck.policyModel === "HealthInsurance") Model = HealthInsurance;
                 else {
                     throw new Error("Unknown Policy");
                 }
@@ -313,7 +322,7 @@ class CheckCoverageController {
             });
         } catch (err) {
             console.log(err.message);
-            return res.staus(200).json({
+            return res.status(500).json({
                 message: "Failed to fetch claim check record",
                 error: err.message
             });
@@ -343,7 +352,7 @@ class CheckCoverageController {
 
             const insuranceDetails = await Model.findById(insuranceId);
 
-            if (!claimRecord) {
+            if (!insuranceDetails) {
                 return res.status(404).json({ message: "Insurance of this claim Not found" });
             }
 
