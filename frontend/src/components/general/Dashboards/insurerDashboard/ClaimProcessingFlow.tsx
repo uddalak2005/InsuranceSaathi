@@ -7,7 +7,7 @@ import { DocumentCheck } from './DocumentCheck';
 import { DecisionArea } from './DecisionArea';
 
 interface ClaimProcessingFlowProps {
-  selectedClaim: ClaimData | null;
+  selectedClaim : any;
   onBack: () => void;
 }
 
@@ -23,16 +23,20 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
     { id: 'decision', name: 'Decision Area', status: 'pending', type: 'manual' },
   ]);
 
-  const mockClaim: ClaimData = selectedClaim || {
-    id: 'CLM-001',
-    policyNumber: 'POL-12345',
-    claimantName: 'John Smith',
-    claimType: 'Auto Accident',
-    amount: 15000,
-    dateSubmitted: '2024-06-15',
-    status: 'processing',
-    priority: 'high',
-  };
+  const mockClaim = selectedClaim;
+
+  const getRandomAmount = () => {
+    return Math.floor(Math.random()*(10000 - 5000))+5000;
+  }
+
+  const getRandomPriority = () => {
+    const random = Math.random();
+    if (random < 0.33) return "medium";
+    if (random < 0.66) return "high";
+    return "low";
+  }
+
+
 
   const getStageIcon = (type: string, status: string) => {
     if (status === 'completed') return <CheckCircle className="h-6 w-6 text-green-400" />;
@@ -69,7 +73,7 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
       </button>
       <div className="h-6 w-px bg-gray-600" />
       <h2 className="text-xl font-semibold text-black">
-        Processing Flow - {mockClaim.id}
+        Processing Flow - {"CLM - 001"}
       </h2>
     </div>
   </div>
@@ -79,23 +83,23 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <p className="text-sm text-gray-400">Claimant</p>
-        <p className="font-semibold text-black">{mockClaim.claimantName}</p>
+        <p className="font-semibold text-black">{selectedClaim.insuranceDetails.ownerName || selectedClaim.insuranceDetails.policyHolderName }</p>
       </div>
       <div>
         <p className="text-sm text-gray-400">Type</p>
-        <p className="font-semibold text-black">{mockClaim.claimType}</p>
+        <p className="font-semibold text-black">{selectedClaim.claim.policyType}</p>
       </div>
       <div>
         <p className="text-sm text-gray-400">Amount</p>
-        <p className="font-semibold text-black">${mockClaim.amount.toLocaleString()}</p>
+        <p className="font-semibold text-black">${'####'}</p>
       </div>
       <div>
         <p className="text-sm text-gray-400">Priority</p>
         <p className={`font-semibold ${
-          mockClaim.priority === 'high' ? 'text-red-400' :
-          mockClaim.priority === 'medium' ? 'text-yellow-400' : 'text-green-400'
+          getRandomPriority() === 'high' ? 'text-red-400' :
+          getRandomPriority() === 'medium' ? 'text-yellow-400' : 'text-green-400'
         }`}>
-          {mockClaim.priority.toUpperCase()}
+          {getRandomPriority().toUpperCase()}
         </p>
       </div>
     </div>

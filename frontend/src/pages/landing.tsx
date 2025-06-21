@@ -61,13 +61,13 @@ export default function LandingPage() {
                 Pricing
               </a>
               <Button 
-              onClick={() =>navigate("/user-signin")}
+              onClick={() =>navigate("/auth-divider-signin")}
               variant="outline" className="border-gray-300">
                 Log In
               </Button>
 
               <Button 
-              onClick={() => navigate("/auth-divider")}
+              onClick={() => navigate("/auth-divider-signup")}
               className="bg-blue-600 hover:bg-blue-700">Sign Up</Button>
             </nav>
 

@@ -2,19 +2,26 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 // import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Building2, FileText, Shield, CheckCircle } from "lucide-react"
-import {InsurerSignupRoute} from "../../../utils/API/InsurerRoutes"
 import {InsurerKYCRoute} from "../../../utils/API/InsurerRoutes"
-import { data, useNavigate } from "react-router-dom"
+import { cookieUtils } from "../../../utils/lib/utils"
+import { useNavigate } from "react-router-dom"
 
 export default function InsurerSignup() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  
+  // Debug cookies on component mount
+  useEffect(() => {
+    console.log('InsurerSignup component mounted');
+    cookieUtils.logAll();
+  }, []);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -23,44 +30,46 @@ export default function InsurerSignup() {
   }
 
   const navigate = useNavigate();
-  const [FormData,setFormData] = useState({
-    orgName: '',
-    email: '',
-    password: '',
+  const [onboardingFormData, setOnboardingFormData] = useState({
     irdai: '',
     cin : '',
     pan: '',
     tan : '',
     companyCode : '',
     phone: ''
-
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
+    e.preventDefault()
+    console.log("OnBoarding data :", onboardingFormData);
+    
+    // Debug cookies before making the request
+    console.log('Cookies before KYC submission:');
+    cookieUtils.logAll();
+    
     try {
-      console.log("FormData:", FormData);
-    
-      const response = await InsurerKYCRoute(FormData);
-      if (response.status >= 200 && response.status < 300) {
-        console.log("Success:", response.data);
-        navigate("/policyHolder-dashboard");
+        const OnBoardingResponse = await InsurerKYCRoute(onboardingFormData);
+        if(OnBoardingResponse.status >=200 && OnBoardingResponse.status<300){
+          console.log("OnBoarding successfull!");
+          navigate("/insurer-dashboard");
+        }
+        else{
+          console.log("onBoarding failed! - ", OnBoardingResponse );
+        }
       }
-      else {
-        console.error("Unexpected HTTP status:", response.status);
-        alert("Something went wrong. Please try again.");
-      }
-    
-    } catch (error: any) {
+     catch (error: any) {
+      // Handle specific error codes/messages if needed
       if (error.response?.status === 401) {
-        alert("Invalid credentials");
+        console.error('401 Unauthorized - Cookie issue detected');
+        console.error('Response headers:', error.response?.headers);
+        console.error('Current cookies:', cookieUtils.getAll());
+        alert("Authentication failed. Please try signing up again.")
       } else {
-        alert("Something went wrong during login.");
+        alert("Something went wrong during onboarding.")
       }
-      console.error("Login error:", error);
+      console.error("Onboarding error:", error)
     }
-  };
+  }
   
 
   return (
@@ -124,58 +133,6 @@ export default function InsurerSignup() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-12">
-              {/* Auth Form */}
-              <form className="space-y-6" name="AuthForm">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <Label htmlFor="companyName" className="text-[#1F2937] font-medium">
-                      Company Name *
-                    </Label>
-                    <Input
-                      id="orgName"
-                      placeholder="ABC Insurance Ltd."
-                      value={FormData.orgName}
-                      onChange={(e) =>
-                        setFormData({ ...FormData, orgName: e.target.value })
-                      }
-                      className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="officialEmail" className="text-[#1F2937] font-medium">
-                      Official Email Address *
-                    </Label>
-                    <Input
-                      id="officialEmail"
-                      type="email"
-                      value={FormData.email}
-                      onChange={(e) =>
-                        setFormData({ ...FormData, email: e.target.value })
-                      }
-                      placeholder="contact@company.com"
-                      className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="password" className="text-[#1F2937] font-medium">
-                      Password *
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={FormData.password}
-                      onChange={(e) =>
-                        setFormData({ ...FormData, password: e.target.value })
-                      }
-                      placeholder="Create a strong password"
-                      className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
-                      required
-                    />
-                  </div>
-                </div>
-              </form>
 
               {/* Onboarding Form */}
               <form className="space-y-6" name="OnboardingForm">
@@ -184,9 +141,9 @@ export default function InsurerSignup() {
     <Label htmlFor="irdai" className="text-[#1F2937] font-medium">IRDAI Number *</Label>
     <Input
       id="irdai"
-      value={FormData.irdai}
+      value={onboardingFormData.irdai}
       onChange={(e) =>
-        setFormData({ ...FormData, irdai: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, irdai: e.target.value })
       }
       placeholder="IRDAI Number"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
@@ -198,9 +155,9 @@ export default function InsurerSignup() {
     <Label htmlFor="phone" className="text-[#1F2937] font-medium">Contact Number *</Label>
     <Input
       id="phone"
-      value={FormData.phone}
+      value={onboardingFormData.phone}
       onChange={(e) =>
-        setFormData({ ...FormData, phone: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, phone: e.target.value })
       }
       placeholder="Contact Number"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
@@ -212,9 +169,9 @@ export default function InsurerSignup() {
     <Label htmlFor="cin" className="text-[#1F2937] font-medium">CIN *</Label>
     <Input
       id="cin"
-      value={FormData.cin}
+      value={onboardingFormData.cin}
       onChange={(e) =>
-        setFormData({ ...FormData, cin: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, cin: e.target.value })
       }
       placeholder="CIN"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
@@ -226,9 +183,9 @@ export default function InsurerSignup() {
     <Label htmlFor="pan" className="text-[#1F2937] font-medium">PAN *</Label>
     <Input
       id="pan"
-      value={FormData.pan}
+      value={onboardingFormData.pan}
       onChange={(e) =>
-        setFormData({ ...FormData, pan: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, pan: e.target.value })
       }
       placeholder="PAN"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
@@ -240,9 +197,9 @@ export default function InsurerSignup() {
     <Label htmlFor="tan" className="text-[#1F2937] font-medium">TAN *</Label>
     <Input
       id="tan"
-      value={FormData.tan}
+      value={onboardingFormData.tan}
       onChange={(e) =>
-        setFormData({ ...FormData, tan: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, tan: e.target.value })
       }
       placeholder="TAN"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"
@@ -254,9 +211,9 @@ export default function InsurerSignup() {
     <Label htmlFor="companyCode" className="text-[#1F2937] font-medium">Company Code *</Label>
     <Input
       id="companyCode"
-      value={FormData.companyCode}
+      value={onboardingFormData.companyCode}
       onChange={(e) =>
-        setFormData({ ...FormData, companyCode: e.target.value })
+        setOnboardingFormData({ ...onboardingFormData, companyCode: e.target.value })
       }
       placeholder="Company Code"
       className="mt-1 border-gray-300 focus:border-[#0047AB] focus:ring-[#0047AB]"

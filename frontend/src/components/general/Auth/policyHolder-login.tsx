@@ -31,9 +31,9 @@ export default function PolicyHolderLogin() {
       const response = await PolicyHolderSignInRoute(formData)
       
       // Assuming success means a token or user object exists in response
-      if (response?.success || response?.token || response?.user) {
+      if (response.status >=200 && response.status<300) {
         console.log("Login successful:", response)
-        navigate("/policyHolder-dashboard")
+          navigate("/policyHolder-dashboard");
       } else {
         console.error("Unexpected response:", response)
         alert("Login failed. Please check your credentials.")

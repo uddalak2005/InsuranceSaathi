@@ -7,59 +7,69 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, User, MapPin, Phone, Shield, FileText, Heart, Car, Home } from "lucide-react"
+import { User, MapPin, Phone, FileText } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import {PolicyHolderKYCRoute} from '../../../utils/API/PolicyHolderRoutes'
+import { useEffect } from "react"
 
 export default function PolicyHolderSignup() {
   const navigate = useNavigate();
-
+  const [userDat,setuserDat] = useState({
+    name:'',
+    phone : '',
+    email : ''
+  });
   const [formData, setFormData] = useState({
-    fullName: '',
-    dateOfBirth: '',
+    dob: '',
     address: '',
-    mobileNumber: '',
-    email: '',
-    insuranceType: '',
-    password: '',
-    confirmPassword: '',
+    aadhar: '',
+    pan : '',
     identityDocument: null as File | null,
   });
 
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  // const [uploadedFile, setUploadedFile] = useState<string | null>(null);
 
+  useEffect(() => {
+    setuserDat(JSON.parse(localStorage.getItem("user_dets")));
+    console.log(JSON.parse(localStorage.getItem("user_dets")));
+  }, [])
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, identityDocument: file }));
-      setUploadedFile(file.name);
-    }
+  // const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setFormData((prev) => ({ ...prev, identityDocument: file }));
+  //     setUploadedFile(file.name);
+  //   }
+  // };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, insuranceType: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
-
     console.log("Submitting data:", formData);
     // Proceed to API call or navigation
-    PolicyHolderKYCRoute(formData);
+    try{
+      const data = await PolicyHolderKYCRoute(formData);
+      console.log("Data in : ", data);
+      localStorage.setItem("user_dets",JSON.stringify(data.data));
+      console.log("Updated user data : ", localStorage.getItem("user_dets"));
     navigate('/policyHolder-dashboard');
-  };
+  }
+  catch(err){
+    console.log(err);
+  }
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -86,11 +96,11 @@ export default function PolicyHolderSignup() {
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="fullName">Full Name *</Label>
-                <Input id="fullName" value={formData.fullName} onChange={handleChange} required />
+                <Input id="fullName" value={userDat ? userDat.name : ''} onChange={handleChange} required />
               </div>
               <div>
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} required />
+                <Label htmlFor="dob">Date of Birth *</Label>
+                <Input id="dob" name="dob" type="date" value={formData.dob} onChange={handleChange} required />
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="address" className="flex items-center">
@@ -112,86 +122,54 @@ export default function PolicyHolderSignup() {
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="mobileNumber">Mobile Number *</Label>
-                <Input id="mobileNumber" type="tel" value={formData.mobileNumber} onChange={handleChange} required />
+                <Input id="mobileNumber" type="tel" value={userDat ? userDat.phone : ''} onChange={handleChange} required readOnly />
               </div>
               <div>
                 <Label htmlFor="email">Email Address *</Label>
-                <Input id="email" type="email" value={formData.email} onChange={handleChange} required />
+                <Input id="email" type="email" value={userDat?.email} onChange={handleChange} required readOnly/>
               </div>
             </CardContent>
           </Card>
-
-          {/* Insurance Preference */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-[#F59E0B]/10 to-[#F59E0B]/5">
-              <CardTitle className="text-[#1F2937] flex items-center">
-                <Shield className="w-5 h-5 mr-2 text-[#F59E0B]" />
-                Insurance Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Label htmlFor="insuranceType">Preferred Insurance Type *</Label>
-              <Select onValueChange={handleSelectChange} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your primary insurance interest" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="car"><Car className="w-4 h-4 mr-2" /> Car Insurance</SelectItem>
-                  <SelectItem value="health"><Heart className="w-4 h-4 mr-2" /> Health Insurance</SelectItem>
-                  <SelectItem value="life"><Shield className="w-4 h-4 mr-2" /> Life Insurance</SelectItem>
-                  <SelectItem value="home"><Home className="w-4 h-4 mr-2" /> Home Insurance</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* Document Upload */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-[#10B981]/10 to-[#10B981]/5">
-              <CardTitle className="text-[#1F2937] flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-[#10B981]" />
-                Identity Verification
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#10B981]">
-                <input
-                  type="file"
-                  id="identityDocument"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <label htmlFor="identityDocument" className="cursor-pointer">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">
-                    {uploadedFile ? <span className="text-[#10B981] font-medium">{uploadedFile}</span> : "Upload Identity Document"}
-                  </p>
-                  <p className="text-sm text-gray-500">Aadhar Card, PAN Card, Driver's License, or Passport</p>
-                </label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Security */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-[#DC2626]/10 to-[#DC2626]/5">
-              <CardTitle className="text-[#1F2937] flex items-center">
-                <Shield className="w-5 h-5 mr-2 text-[#DC2626]" />
-                Account Security
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="password">Password *</Label>
-                <Input id="password" type="password" value={formData.password} onChange={handleChange} required />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                <Input id="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required />
-              </div>
-            </CardContent>
-          </Card>
+  
+          {/* Identity Verification */}
+        <Card className="shadow-lg border-0">
+          <CardHeader className="bg-gradient-to-r from-[#10B981]/10 to-[#10B981]/5">
+            <CardTitle className="text-[#1F2937] flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-[#10B981]" />
+              Identity Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div>
+              <label htmlFor="aadhar" className="block text-sm font-medium text-gray-700">
+                Aadhar Number
+              </label>
+              <input
+                type="text"
+                id="aadhar"
+                name="aadhar"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#10B981] focus:border-[#10B981]"
+                placeholder="Enter your 12-digit Aadhar number"
+                maxLength={12}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="pan" className="block text-sm font-medium text-gray-700">
+                PAN Number
+              </label>
+              <input
+                type="text"
+                id="pan"
+                name="pan"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 uppercase focus:ring-[#10B981] focus:border-[#10B981]"
+                placeholder="Enter your PAN number"
+                maxLength={10}
+                onChange={handleInputChange}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
           {/* Submit Button */}
           <div className="text-center">

@@ -11,7 +11,7 @@ export default function PolicyHolderAuth() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: '',
+    name: '',
     phone: '',
   });
 
@@ -30,10 +30,15 @@ export default function PolicyHolderAuth() {
   };
 
   const handleSubmit = async (e : any) => {
+    console.log("Sending request");
     e.preventDefault();
     try {
       const data = await PolicyHolderSignUpRoute(formData);
       console.log('Signup success:', data);
+      localStorage.setItem("user_dets",JSON.stringify(data.newUserRecord));
+      localStorage.setItem("JWT",data.token);
+      console.log("User details set : ", localStorage.getItem("user_dets") , "Token set: ", localStorage.getItem("JWT" ));
+      navigate("/user-kyc");
 
     } catch (error) {
       alert('Signup failed!');
@@ -128,18 +133,19 @@ export default function PolicyHolderAuth() {
       <div className="space-y-4">
         {/* Username */}
         <div>
-          <Label htmlFor="username" className="text-[#1F2937] font-medium">
+          <Label htmlFor="name" className="text-[#1F2937] font-medium">
             Username
           </Label>
           <Input
-            id="username"
-            type="text"
-            placeholder="john_doe"
-            className="mt-1 border-gray-300 focus:border-[#10B981] focus:ring-[#10B981]"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
+          id="name"
+          name="name" // ✅ This must match the key in formData
+          type="text"
+          placeholder="john_doe"
+          className="mt-1 border-gray-300 focus:border-[#10B981] focus:ring-[#10B981]"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
         </div>
 
         {/* Email */}

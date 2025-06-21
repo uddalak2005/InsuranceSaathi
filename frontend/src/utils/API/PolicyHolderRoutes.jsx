@@ -2,34 +2,76 @@ import axios from 'axios';
 
 export const PolicyHolderSignUpRoute = async (formdata) => {
   try {
-    const response = await axios.post('http://192.168.26.12:3000/auth/policyHolder/signUp', formdata,
-        {withCredentials : true}
+    console.log("📤 Sending policy holder signup data:", formdata);
+
+    const response = await axios.post(
+      'http://192.168.128.12:3000/auth/policyHolder/signUp',
+      formdata,
     );
-    return response.data; // Already parsed JSON
+
+    console.log("✅ Signup successful. Response data:", response.data);
+    return response.data;
   } catch (error) {
-    console.error('Signup error:', error);
-    throw error; // optional: rethrow if you want to handle it elsewhere
+    console.error("❌ Signup error:", error);
+
+    if (error.response) {
+      console.error("📥 Server responded with:", {
+        status: error.response.status,
+        data: error.response.data,
+      });
+    } else if (error.request) {
+      console.error("📡 No response received. Request was:", error.request);
+    } else {
+      console.error("⚠️ Error setting up the request:", error.message);
+    }
+
+    throw error;
   }
 };
 
 export const PolicyHolderKYCRoute = async (formdata) => {
   try {
-    const response = await axios.post('http://192.168.72.13:3000/auth/policyHolder/onBoard', formdata,
-        {withCredentials : true}
+    console.log("📤 Sending Policy Holder KYC data:", formdata);
+
+    const response = await axios.patch(
+      'http://192.168.128.12:3000/onboarding/policyHolder',
+      formdata,
+      {
+        headers: {
+        token: localStorage.getItem("JWT"),
+      },
+      }
     );
-    return response.data; // Already parsed JSON
+
+    console.log("✅ KYC submission successful. Response data:", response.data);
+    return response.data;
   } catch (error) {
-    console.error('KYC error:', error);
-    throw error; // optional: rethrow if you want to handle it elsewhere
+    console.error("❌ KYC submission failed.");
+
+    if (error.response) {
+      // Server responded with a status outside 2xx
+      console.error("📥 Server responded with an error:", {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+    } else if (error.request) {
+      // No response received after request was sent
+      console.error("📡 No response received. Request was:", error.request);
+    } else {
+      // Error during setup (e.g., bad config)
+      console.error("⚠️ Error setting up request:", error.message);
+    }
+
+    throw error;
   }
-};
+}
 
 export const PolicyHolderSignInRoute = async (formdata) => {
   try {
-    const response = await axios.post('http://192.168.72.13:3000/auth/policyHolder/login', formdata,
-        {withCredentials : true}
+    const response = await axios.post('http://192.168.128.12:3000/auth/policyHolder/login', formdata,
     );
-    return response.data; // Already parsed JSON
+    return response; // Already parsed JSON
   } catch (error) {
     console.error('Signin error:', error);
     throw error; // optional: rethrow if you want to handle it elsewhere

@@ -1,42 +1,73 @@
 import axios from 'axios';
 
+// Create axios instance with default configuration
+const apiClient = axios.create({
+  baseURL: 'http://192.168.128.12:3000',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor to log cookies
+apiClient.interceptors.request.use(
+  (config) => {
+    console.log('Request cookies:', document.cookie);
+    console.log('Request URL:', config.url);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to log cookies
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log('Response cookies:', document.cookie);
+    console.log('Response headers:', response.headers);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error);
+    return Promise.reject(error);
+  }
+);
+
 //Sign-up two parts - Signup and onboarding
 export const InsurerSignupRoute = async (formdata) => {
   try {
-    const response = await axios.post('https://smvm6k8p-3000.inc1.devtunnels.ms/auth/insurer/signUp', formdata,
-        {withCredentials : true}
-    );
-    return response.data; // Already parsed JSON
+    const response = await apiClient.post('/auth/insurer/signUp', formdata);
+    // console.log('Signup response status:', response.status);
+    // console.log('Signup response cookies:', document.cookie);
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
-    throw error; // optional: rethrow if you want to handle it elsewhere
+    throw error;
   }
 };
 
 export const InsurerKYCRoute = async (formdata) => {
-    try {
-      const response = await axios.patch(
-        'https://smvm6k8p-3000.inc1.devtunnels.ms/onboarding/insurer',
-        formdata,
-        { withCredentials: true }
-      );
-      return response; // ✅ full response, not just response.data
-    } catch (error) {
-      console.error('Signup error:', error);
-      throw error;
-    }
-  };
-
+  try {
+    const response = await apiClient.patch('/onboarding/insurer', formdata, {
+      headers: {
+        token: localStorage.getItem("firebase_uid"),
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error('KYC error:', error);
+    throw error;
+  }
+};
 
 //Signin route
 export const InsurerSignInRoute = async (formdata) => {
   try {
-    const response = await axios.post('https://smvm6k8p-3000.inc1.devtunnels.ms/insurer/login', formdata,
-        {withCredentials : true}
-    );
-    return response.data; // Already parsed JSON
+    const response = await apiClient.post('/insurer/login', formdata);
+    return response.data;
   } catch (error) {
-    console.error('Signup error:', error);
-    throw error; // optional: rethrow if you want to handle it elsewhere
+    console.error('Signin error:', error);
+    throw error;
   }
 };

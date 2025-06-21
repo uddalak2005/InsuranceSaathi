@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,52 @@ const PolicyHolderDashMain = () => {
       lastUpdate: "Claim settled - payment processed"
     }
   ]);
+
+  const [ClaimsData, setClaimsData] = useState([]);
+
+  //Claim History fetch
+  useEffect(() => {
+    const fetchClaimHistory = async() => {
+    try {
+      const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+        method : 'GET',
+        headers : {
+          'token' : localStorage.getItem("JWT")
+        }
+      });
+      if(response.ok){
+      const data = await response.json();
+      setClaimsData(data.data);
+      console.log("Claims fetched");
+      console.log(data.data);
+      }
+      else{
+        console.log("Response error : ", response.status);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  fetchClaimHistory();
+  
+  }, [])
+
+  const [userDet,setuserDet] = useState({
+    name:'',
+    phone : '',
+    email : '',
+    dob: '',
+    aadhar : '',
+    address : '',
+    pan : ''
+  });
+
+  useEffect(()=>{
+    setuserDet(JSON.parse(localStorage.getItem('user_dets')));
+    console.log("Parsed!");
+  },[])
+
+
   const { toast } = useToast();
 
   const getStatusIcon = (status: string) => {
@@ -67,7 +113,7 @@ const PolicyHolderDashMain = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-blue-700 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">InsuranceClaims Pro</h1>
+              <h1 className="text-2xl font-bold text-gray-900">InsuranceSaathi</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" className="relative">
@@ -77,7 +123,7 @@ const PolicyHolderDashMain = () => {
                 </Badge>
               </Button>
               <div className="text-sm">
-                <p className="font-medium text-gray-900">John Doe</p>
+                <p className="font-medium text-gray-900">{userDet?.name}</p>
                 <p className="text-gray-500">Policy: POL-2024-12345</p>
               </div>
             </div>
@@ -151,20 +197,19 @@ const PolicyHolderDashMain = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {claims.map((claim) => (
-                    <div key={claim.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  {ClaimsData.map((claim,index) => (
+                    <div key={claim.claim._id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
-                        {getStatusIcon(claim.status)}
+                        {getStatusIcon(claim.claim.status)}
                         <div>
-                          <p className="font-medium">{claim.id} - {claim.type}</p>
-                          <p className="text-sm text-gray-500">{claim.lastUpdate}</p>
+                          <p className="font-medium">{`CLM - 00${index+1}`} - {claim.claim.policyType}</p>
+                          <p className="text-sm text-gray-500">{claim.claim.createdAt}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <Badge className={getStatusColor(claim.status)}>
-                          {claim.status.replace('-', ' ').toUpperCase()}
+                        <Badge className={getStatusColor(claim.claim.status)}>
+                          {claim.claim.status.toUpperCase()}
                         </Badge>
-                        <p className="text-sm text-gray-500 mt-1">${claim.amount}</p>
                       </div>
                     </div>
                   ))}
