@@ -7,7 +7,7 @@
 ---
 
 ## 🛠 Architecture Overview
-![alt text](http://url/to/img.png)
+![Architecture](https://github.com/uddalak2005/InsuranceSaathi/blob/main/architecture.png)
 
 
 ---
@@ -57,7 +57,9 @@ Focus on document compliance and death claim verification:
 ---
 
 ## 🤖 Backend Workflow
+![Backend Structure](https://github.com/uddalak2005/InsuranceSaathi/blob/main/backend_structure.png)
 
+---
 ### AI Models (98-99% Accuracy)
 
 |**Use Case**|**Model**|**Description**|
@@ -71,7 +73,7 @@ Focus on document compliance and death claim verification:
 
 ### Confusion Matrix — Vehicle Make Detection
 
-_(To be populated with actual data post-training)_
+![Confusion Matrix](https://github.com/uddalak2005/InsuranceSaathi/blob/main/Confusion_Matrix.png)
 
 ---
 
@@ -152,8 +154,8 @@ python run_inference.py
 ---
 
 ## 🌟 Vision
-
-Building India’s most intelligent, transparent, and trusted claim processing engine for vehicle, health, and life insurance—launched at 03:40 AM IST, June 22, 2025.
+---
+Building India’s most intelligent, transparent, and trusted claim processing engine for vehicle, health, and life insurance—launched at 03:40 AM IST, June 22, 2025. We present InsureSaathi.ai to the judges as an open-ended innovation with boundless possibilities, serving not just as a solution but as a foundation for future growth. This platform holds the potential for exciting advancements, such as integrating reinforcement learning for advanced predictive analytics to dynamically optimize claim approval rates, incorporating blockchain for immutable audit trails to enhance regulatory compliance, developing natural language interfaces for voice-driven claim submissions to improve accessibility, leveraging IoT synergy with real-time vehicle telemetry for precise damage assessment in vehicle insurance, and offering personalized policy recommendations driven by AI analysis of user health and driving data. As a living ecosystem, InsureSaathi.ai is poised to evolve with emerging technologies and user needs, promising continuous improvement and scalability in the near future.
 
 ---
 
