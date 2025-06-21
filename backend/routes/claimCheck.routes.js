@@ -37,7 +37,7 @@ router.post(
   upload.fields([
     { name: "policyDocs", maxCount: 1 },
     { name: "finalBill", maxCount: 1 },
-    { name: "passbook", maxCount: 1 }
+    { name: "medicalDocs", maxCount: 1 }
   ]),
   checkCoverageController.checkHealthInsurance
 );

@@ -27,7 +27,7 @@ const healthInsuranceSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Upload'
     },
-    passbook : {
+    medicalDocs : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Upload'
     }
