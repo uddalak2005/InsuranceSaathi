@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Users, MapPin, Clock } from 'lucide-react';
-import type { ClaimData } from './types';
 
-interface FraudDetectionProps {
-  claim: ClaimData;
-}
-
-export const FraudDetection: React.FC<FraudDetectionProps> = ({}) => {
+export const FraudDetection = ({}) => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResults, setScanResults] = useState<any>(null);
 

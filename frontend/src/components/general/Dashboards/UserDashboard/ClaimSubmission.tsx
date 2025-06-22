@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Shield } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Info } from 'lucide-react';
 import { HealthInsuranceForm } from '../../forms/HealthForm';
 import { LifeInsuranceForm } from '../../forms/lifeform';
@@ -16,8 +15,6 @@ const ClaimSubmission = () => {
   useEffect(()=>{
     console.log(insuranceFormData);
   },[insuranceFormData])
-
-  const { toast } = useToast();
 
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({});
 
@@ -190,13 +187,6 @@ const ClaimSubmission = () => {
   //   }, 300);
   // };
 
-  const coverageData = [
-    { type: "Auto Liability", covered: true, limit: "$500,000", deductible: "$500" },
-    { type: "Collision", covered: true, limit: "$50,000", deductible: "$1,000" },
-    { type: "Comprehensive", covered: true, limit: "$50,000", deductible: "$500" },
-    { type: "Medical Payments", covered: true, limit: "$10,000", deductible: "$0" },
-    { type: "Uninsured Motorist", covered: false, limit: "N/A", deductible: "N/A" }
-  ];
 
   return (
     <div className="space-y-6">

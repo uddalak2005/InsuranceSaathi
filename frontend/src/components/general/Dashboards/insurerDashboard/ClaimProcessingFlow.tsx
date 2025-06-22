@@ -157,8 +157,8 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
       {/* Detailed Stage View */}
       <div className="bg-white border border-gray-300 rounded-lg p-6 mt-6">
         {currentStage === 'ai-risk' && <AIRiskEvaluation/>}
-        {currentStage === 'fraud-detection' && <FraudDetection claim={selectedClaim} />}
-        {currentStage === 'document-check' && <DocumentCheck claim={selectedClaim} />}
+        {currentStage === 'fraud-detection' && <FraudDetection/>}
+        {currentStage === 'document-check' && <DocumentCheck/>}
         {currentStage === 'decision' && <DecisionArea claim={selectedClaim} />}
         {currentStage === 'initial' && (
           <div className="text-center py-8">
