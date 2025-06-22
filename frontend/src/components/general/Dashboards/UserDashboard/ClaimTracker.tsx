@@ -29,34 +29,54 @@ interface ClaimTrackerProps {
 const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
 
   const [ClaimsData, setClaimsData] = useState([]);
+  const [aiResponse,setaiResponse] = useState([]);
+  const [aiInfoMap, setAiInfoMap] = useState<Record<string, Record<string, string>>>({
+    "123456": {
+      "Risk Score": "78%",
+      "Damage Level": "Moderate",
+      "Claim Validity": "Valid",
+      "Policy Breach": "No",
+      "Driver Age": "32 yrs",
+      "Estimated Payout": "₹75,000",
+      "Accident Severity": "Severe",
+      "Weather Condition": "Foggy",
+      "Vehicle Age": "5 yrs",
+      "Previous Claims": "2"
+    }
+  });
 
-  //Claim History fetch
-  useEffect(() => {
-    const fetchClaimHistory = async() => {
+  const fetchAiResponse = async (id: string) => {
     try {
-      const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
-        method : 'GET',
-        headers : {
-          'token' : localStorage.getItem("JWT")
-        }
-      });
-      if(response.ok){
-      const data = await response.json();
-      setClaimsData(data.data);
-      console.log("Claims fetched");
-      console.log(data.data);
-      }
-      else{
-        console.log("Response error : ", response.status);
+      const token = localStorage.getItem('JWT');
+      if (!token) throw new Error("Missing auth token");
+  
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}claim/getAIScore/${id}`,
+        {
+          headers: {
+            token,
+          },
+        });
+  
+      if (response.status >= 200 && response.status < 300) {
+        console.log("Data : ",response.data);
+        setaiResponse(response.data);
+
+        setAiInfoMap((prev) => ({
+          ...prev,
+          [id]: response.data,
+        }));
+
+
+        return response.data;
+      } else {
+        console.warn("Unexpected response status:", response.status);
       }
     } catch (error) {
-      console.error(error);
+      console.error("AI Score fetch failed:", error);
+      // Optional: throw or return error to the caller if needed
     }
-  }
-  fetchClaimHistory();
-  
-  }, [])
-
+  };
 
 
   const getStatusIcon = (status: string) => {
@@ -143,7 +163,7 @@ const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
         console.log(uid);
       }
     }
-    const res = await fetch(`http://192.168.128.12:3000/claim/submit/${uid}`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/claim/submit/${uid}`, {
       method : 'POST',
       headers : {
         'token' : localStorage.getItem("JWT")
@@ -156,7 +176,7 @@ const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
 useEffect(() => {
   const fetchClaimHistory = async() => {
   try {
-    const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}claim/getAllClaims`, {
       method : 'GET',
       headers : {
         'token' : localStorage.getItem("JWT")
@@ -214,8 +234,8 @@ const claimStages = [
     setExpandedClaimId(prev => (prev === id ? null : id));
   };
 
-  return (
-    <div className="space-y-6">
+return(
+  <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Track Your Claims</CardTitle>
@@ -227,6 +247,7 @@ const claimStages = [
 
       {ClaimsData.map((claim) => {
         const isExpanded = expandedClaimId === claim.claim.insurerIrdai;
+        const aiData = aiResponse[claim.claim.insurerIrdai];
 
         return (
           <Card key={claim.claim.insurerIrdai}>
@@ -249,7 +270,6 @@ const claimStages = [
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {/* Progress Tracker */}
               <div className="space-y-4">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Progress</span>
@@ -257,7 +277,6 @@ const claimStages = [
                 </div>
                 <Progress value={getProgressValue(claim.claim.status)} className="w-full" />
 
-                {/* Stage Statuses */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                   {claimStages.map((stage, index) => {
                     const progress = getProgressValue(claim.claim.status);
@@ -302,13 +321,10 @@ const claimStages = [
                 </div>
               </div>
 
-              {/* Conditional Section */}
               {isExpanded && (
                 <>
-                  {/* Updates */}
                   <div className="space-y-3">
                     <h4 className="font-medium">Recent Updates</h4>
-
                     <div className="space-y-3">
                       <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
                         <Clock className="h-4 w-4 text-blue-600 mt-0.5" />
@@ -317,7 +333,6 @@ const claimStages = [
                           <p className="text-xs text-gray-500">2 hours ago</p>
                         </div>
                       </div>
-
                       <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                         <FileText className="h-4 w-4 text-gray-600 mt-0.5" />
                         <div className="flex-1">
@@ -327,7 +342,6 @@ const claimStages = [
                           <p className="text-xs text-gray-500">1 day ago</p>
                         </div>
                       </div>
-
                       <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                         <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
                         <div className="flex-1">
@@ -342,7 +356,6 @@ const claimStages = [
                     </div>
                   </div>
 
-                  {/* Manual Review Alert */}
                   {claim.claim.status === "UnderReview" && (
                     <div className="flex items-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
                       <User className="h-5 w-5 text-amber-600 mr-3" />
@@ -359,28 +372,52 @@ const claimStages = [
                     </div>
                   )}
 
+                  {aiData && (
+                    <div className="border rounded-lg p-4 bg-slate-50 space-y-2">
+                      <h4 className="font-semibold">AI Risk Evaluation</h4>
+                      {Object.entries(aiData).slice(0, 10).map(([key, val]) => (
+                        <div key={key} className="text-sm text-gray-700">
+                          <span className="font-medium">{key}:</span> {String(val)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="text-sm text-gray-500 pt-4 border-t">
                     Submitted: {new Date(claim.claim.createdAt).toLocaleString()}
                   </div>
                 </>
               )}
 
-              {/* Expand/Collapse Button */}
-              <div className="flex w-[20%] p-4 justify-between pt-2">
+              <div className="flex flex-wrap gap-4 pt-2">
                 <Button variant="outline" size="lg" className="mx-2" onClick={() => toggleExpanded(claim.claim.insurerIrdai)}>
                   {isExpanded ? "Hide Details" : "View Details"}
                 </Button>
 
-                <Button variant="outline" className="mx-2" size="lg">
+                <Button onClick={() => {
+                  setExpandedClaimId('123456')}} 
+                  variant="outline" className="mx-2" size="lg">
                   AI Prediction
                 </Button>
 
-                <Button 
-                onClick={() => handleSubmit(claim.claim.insurerIrdai)}
-                variant="outline" className="mx-2 bg-black text-white text-base" size="lg">
+                <Button onClick={() => handleSubmit(claim.claim.insurerIrdai)} variant="outline" className="mx-2 bg-black text-white text-base" size="lg">
                   Submit
                 </Button>
               </div>
+              {aiInfoMap[claim.claim.insurerIrdai] && (
+            <div className="border p-4 rounded-lg bg-gray-50 space-y-2">
+              <h4 className="text-sm font-bold text-gray-700">AI Prediction Info</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-600">
+                {Object.entries(aiInfoMap[claim.claim.insurerIrdai]).map(([key, value]) => (
+                  <div key={key} className="flex justify-between">
+                    <span className="font-medium">{key}:</span>
+                    <span>{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
             </CardContent>
           </Card>
         );

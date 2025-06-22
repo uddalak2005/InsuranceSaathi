@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, FileText, AlertTriangle } from 'lucide-react';
-import type { ClaimData } from './types';
+// import type { ClaimData } from './types';
 
-interface DecisionAreaProps {
-  claim: ClaimData;
-}
-
-export const DecisionArea: React.FC<DecisionAreaProps> = ({ claim }) => {
+export const DecisionArea = ({ claim }) => {
   const [decision, setDecision] = useState<'approve' | 'reject' | 'request-docs' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
@@ -57,7 +53,7 @@ export const DecisionArea: React.FC<DecisionAreaProps> = ({ claim }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-sm text-gray-400">Claim Amount</p>
-            <p className="text-xl font-bold text-black">${claim.amount.toLocaleString()}</p>
+            <p className="text-xl font-bold text-black">${"####"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-400">Risk Assessment</p>

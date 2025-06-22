@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // Create axios instance with default configuration
+
 const apiClient = axios.create({
-  baseURL: 'http://192.168.128.12:3000',
-  withCredentials: true,
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -64,8 +64,8 @@ export const InsurerKYCRoute = async (formdata) => {
 //Signin route
 export const InsurerSignInRoute = async (formdata) => {
   try {
-    const response = await apiClient.post('/insurer/login', formdata);
-    return response.data;
+    const response = await apiClient.post('/auth/insurer/login', formdata);
+    return response;
   } catch (error) {
     console.error('Signin error:', error);
     throw error;

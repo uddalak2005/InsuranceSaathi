@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Bot, FileCheck, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import type { ClaimData, ProcessStage } from '@/components/general/Dashboards/insurerDashboard/types';
+import type { ProcessStage } from '@/components/general/Dashboards/insurerDashboard/types';
 import { AIRiskEvaluation } from './AiRiskEval';
 import { FraudDetection } from './FraudDetection';
 import { DocumentCheck } from './DocumentCheck';
@@ -150,10 +150,10 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
 
       {/* Detailed Stage View */}
       <div className="bg-white border border-gray-300 rounded-lg p-6 mt-6">
-        {currentStage === 'ai-risk' && <AIRiskEvaluation claim={mockClaim} />}
-        {currentStage === 'fraud-detection' && <FraudDetection claim={mockClaim} />}
-        {currentStage === 'document-check' && <DocumentCheck claim={mockClaim} />}
-        {currentStage === 'decision' && <DecisionArea claim={mockClaim} />}
+        {currentStage === 'ai-risk' && <AIRiskEvaluation claim={selectedClaim} />}
+        {currentStage === 'fraud-detection' && <FraudDetection claim={selectedClaim} />}
+        {currentStage === 'document-check' && <DocumentCheck claim={selectedClaim} />}
+        {currentStage === 'decision' && <DecisionArea claim={selectedClaim} />}
         {currentStage === 'initial' && (
           <div className="text-center py-8">
             <Bot className="h-16 w-16 text-gray-500 mx-auto mb-4" />

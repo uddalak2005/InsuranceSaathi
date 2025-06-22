@@ -38,7 +38,7 @@ const PolicyHolderDashMain = () => {
   useEffect(() => {
     const fetchClaimHistory = async() => {
     try {
-      const response = await fetch("http://192.168.128.12:3000/claim/getAllClaims", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}claim/getAllClaims`, {
         method : 'GET',
         headers : {
           'token' : localStorage.getItem("JWT")
@@ -132,8 +132,8 @@ const PolicyHolderDashMain = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full p-4">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-8">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="policy">My Policy</TabsTrigger>
             <TabsTrigger value="submit">Submit Claim</TabsTrigger>
@@ -150,7 +150,7 @@ const PolicyHolderDashMain = () => {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-700">3</div>
+                  <div className="text-2xl font-bold text-blue-700">{ClaimsData.length}</div>
                   <p className="text-xs text-muted-foreground">+1 from last month</p>
                 </CardContent>
               </Card>
@@ -161,7 +161,7 @@ const PolicyHolderDashMain = () => {
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">12</div>
+                  <div className="text-2xl font-bold text-green-600">{ClaimsData.filter((item)=>item.claim.status === "Submitted").length}</div>
                   <p className="text-xs text-muted-foreground">$45,200 total</p>
                 </CardContent>
               </Card>
@@ -172,7 +172,7 @@ const PolicyHolderDashMain = () => {
                   <Clock className="h-4 w-4 text-amber-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-amber-600">2</div>
+                  <div className="text-2xl font-bold text-amber-600">{ClaimsData.filter((item)=>item.claim.status === "Under Review").length}</div>
                   <p className="text-xs text-muted-foreground">Avg. 5-7 days</p>
                 </CardContent>
               </Card>

@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { Bot, AlertTriangle, CheckCircle, FileText, TrendingUp } from 'lucide-react';
-import type { ClaimData } from './types';
 
-interface AIRiskEvaluationProps {
-  claim: ClaimData;
-}
-
-export const AIRiskEvaluation: React.FC<AIRiskEvaluationProps> = ({}) => {
+export const AIRiskEvaluation = ({claim : any}) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any>(null);
 

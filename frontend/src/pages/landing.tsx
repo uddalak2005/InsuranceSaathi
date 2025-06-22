@@ -146,7 +146,9 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4">
+              <Button size="lg" 
+              onClick={() => navigate("/auth-divider-signup")}
+              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4">
                 Get Started <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
