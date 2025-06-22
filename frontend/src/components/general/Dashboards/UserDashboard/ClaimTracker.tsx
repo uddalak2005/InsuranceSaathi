@@ -11,22 +11,7 @@ import {
   ArrowBigUpDash,
 } from "lucide-react";
 
-interface Claim {
-  id: string;
-  type: string;
-  status: string;
-  amount: number;
-  submittedDate: string;
-  lastUpdate: string;
-}
-
-
-
-interface ClaimTrackerProps {
-  claims: Claim[];
-}
-
-const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
+const ClaimTracker = () => {
 
   const [ClaimsData, setClaimsData] = useState([]);
   const [aiResponse,setaiResponse] = useState([]);
@@ -62,9 +47,18 @@ const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
         console.log("Data : ",response.data);
         setaiResponse(response.data);
 
+        var uid : any;
+        for(var i=0;i<ClaimsData.length;i++){
+          if(ClaimsData[i].claim._id === id){
+            uid = ClaimsData[i].claim.insurerIrdai;
+            console.log(uid);
+          }
+        }
+
+
         setAiInfoMap((prev) => ({
           ...prev,
-          [id]: response.data,
+          [uid]: response.data,
         }));
 
 
@@ -169,6 +163,7 @@ const ClaimTracker = ({ claims }: ClaimTrackerProps) => {
         'token' : localStorage.getItem("JWT")
       }
     });
+    console.log(res);
   };
 
 
@@ -395,7 +390,8 @@ return(
                 </Button>
 
                 <Button onClick={() => {
-                  setExpandedClaimId('123456')}} 
+                  fetchAiResponse(claim.claim._id)
+                  setExpandedClaimId(claim.claim.insurerIrdai)}} 
                   variant="outline" className="mx-2" size="lg">
                   AI Prediction
                 </Button>

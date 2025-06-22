@@ -9,28 +9,26 @@ import ClaimSubmission from "@/components/general/Dashboards/UserDashboard/Claim
 import ClaimTracker from "@/components/general/Dashboards/UserDashboard/ClaimTracker";
 import AppealSection from "@/components/general/Dashboards/UserDashboard/AppealSection";
 // import ClaimRecords from "@/components/general/dashboards/UserDashboard/ClaimRecords";
-import { useToast } from "@/hooks/use-toast";
 
 const PolicyHolderDashMain = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [claims, setClaims] = useState([
-    {
-      id: "CLM-2024-001",
-      type: "Auto Accident",
-      status: "under-review",
-      amount: 2500,
-      submittedDate: "2024-01-15",
-      lastUpdate: "Policy review in progress"
-    },
-    {
-      id: "CLM-2024-002",
-      type: "Medical",
-      status: "accepted",
-      amount: 1800,
-      submittedDate: "2024-01-10",
-      lastUpdate: "Claim settled - payment processed"
-    }
-  ]);
+  // const claims = [{
+  //   id: "CLM-2024-001",
+  //   type: "Auto Accident",
+  //   status: "under-review",
+  //   amount: 2500,
+  //   submittedDate: "2024-01-15",
+  //   lastUpdate: "Policy review in progress"
+  // },
+  // {
+  //   id: "CLM-2024-002",
+  //   type: "Medical",
+  //   status: "accepted",
+  //   amount: 1800,
+  //   submittedDate: "2024-01-10",
+  //   lastUpdate: "Claim settled - payment processed"
+  // }];
+  
 
   const [ClaimsData, setClaimsData] = useState([]);
 
@@ -77,7 +75,7 @@ const PolicyHolderDashMain = () => {
   },[])
 
 
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -227,7 +225,7 @@ const PolicyHolderDashMain = () => {
           </TabsContent>
 
           <TabsContent value="track">
-            <ClaimTracker claims={claims} />
+            <ClaimTracker />
           </TabsContent>
 
           <TabsContent value="appeals">

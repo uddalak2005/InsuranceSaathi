@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Shield } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Info } from 'lucide-react';
 import { HealthInsuranceForm } from '../../forms/HealthForm';
 import { LifeInsuranceForm } from '../../forms/lifeform';
@@ -16,8 +15,6 @@ const PolicySection = () => {
   useEffect(()=>{
     console.log(insuranceFormData);
   },[insuranceFormData])
-
-  const { toast } = useToast();
 
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({});
 

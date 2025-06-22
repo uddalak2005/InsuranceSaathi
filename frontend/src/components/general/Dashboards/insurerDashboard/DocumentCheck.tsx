@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileCheck, Upload, CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
-import type { ClaimData } from './types';
 
-interface DocumentCheckProps {
-  claim: ClaimData;
-}
 
-export const DocumentCheck: React.FC<DocumentCheckProps> = ({}) => {
+export const DocumentCheck = ({}) => {
   const [documents, setDocuments] = useState([
     {
       id: 1,

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {useNavigate} from 'react-router-dom'
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
@@ -44,7 +44,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">ClaimAI</span>
+              <span className="text-xl font-bold text-gray-900">InsuranceSaathi</span>
             </div>
 
             <nav className="hidden md:flex items-center space-x-8">

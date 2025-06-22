@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Bot, FileCheck, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import type { ProcessStage } from '@/components/general/Dashboards/insurerDashboard/types';
 import { AIRiskEvaluation } from './AiRiskEval';
 import { FraudDetection } from './FraudDetection';
 import { DocumentCheck } from './DocumentCheck';
@@ -16,18 +15,25 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
   onBack,
 }) => {
   const [currentStage, setCurrentStage] = useState<string>('initial');
-  const [processStages, setProcessStages] = useState<ProcessStage[]>([
-    { id: 'ai-risk', name: 'AI Risk Evaluation', status: 'pending', type: 'automated' },
-    { id: 'fraud-detection', name: 'Fraud Detection', status: 'pending', type: 'automated' },
-    { id: 'document-check', name: 'Document Check', status: 'pending', type: 'manual' },
-    { id: 'decision', name: 'Decision Area', status: 'pending', type: 'manual' },
-  ]);
+  // const [processStages, setProcessStages] = useState<ProcessStage[]>([
+  //   { id: 'ai-risk', name: 'AI Risk Evaluation', status: 'pending', type: 'automated' },
+  //   { id: 'fraud-detection', name: 'Fraud Detection', status: 'pending', type: 'automated' },
+  //   { id: 'document-check', name: 'Document Check', status: 'pending', type: 'manual' },
+  //   { id: 'decision', name: 'Decision Area', status: 'pending', type: 'manual' },
+  // ]);
 
-  const mockClaim = selectedClaim;
+    const processStages = [
+      { id: 'ai-risk', name: 'AI Risk Evaluation', status: 'pending', type: 'automated' },
+      { id: 'fraud-detection', name: 'Fraud Detection', status: 'pending', type: 'automated' },
+      { id: 'document-check', name: 'Document Check', status: 'pending', type: 'manual' },
+      { id: 'decision', name: 'Decision Area', status: 'pending', type: 'manual' },
+    ]
 
-  const getRandomAmount = () => {
-    return Math.floor(Math.random()*(10000 - 5000))+5000;
-  }
+  // const mockClaim = selectedClaim;
+
+  // const getRandomAmount = () => {
+  //   return Math.floor(Math.random()*(10000 - 5000))+5000;
+  // }
 
   const getRandomPriority = () => {
     const random = Math.random();
@@ -150,9 +156,9 @@ export const ClaimProcessingFlow: React.FC<ClaimProcessingFlowProps> = ({
 
       {/* Detailed Stage View */}
       <div className="bg-white border border-gray-300 rounded-lg p-6 mt-6">
-        {currentStage === 'ai-risk' && <AIRiskEvaluation claim={selectedClaim} />}
-        {currentStage === 'fraud-detection' && <FraudDetection claim={selectedClaim} />}
-        {currentStage === 'document-check' && <DocumentCheck claim={selectedClaim} />}
+        {currentStage === 'ai-risk' && <AIRiskEvaluation/>}
+        {currentStage === 'fraud-detection' && <FraudDetection/>}
+        {currentStage === 'document-check' && <DocumentCheck/>}
         {currentStage === 'decision' && <DecisionArea claim={selectedClaim} />}
         {currentStage === 'initial' && (
           <div className="text-center py-8">
