@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Bot, AlertTriangle, CheckCircle, FileText, TrendingUp } from 'lucide-react';
 
-export const AIRiskEvaluation = ({claim : any}) => {
+export const AIRiskEvaluation = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any>(null);
 

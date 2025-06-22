@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CheckCircle, XCircle, FileText, AlertTriangle } from 'lucide-react';
 // import type { ClaimData } from './types';
 

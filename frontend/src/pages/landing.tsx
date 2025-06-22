@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {useNavigate} from 'react-router-dom'
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
