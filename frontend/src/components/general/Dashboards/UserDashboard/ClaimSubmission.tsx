@@ -169,24 +169,6 @@ const ClaimSubmission = () => {
     }
   };
 
-  // const startAnalysis = () => {
-  //   setAnalysisProgress(0);
-  //   const interval = setInterval(() => {
-  //     setAnalysisProgress((prev) => {
-  //       if (prev >= 100) {
-  //         clearInterval(interval);
-  //         setAnalysisComplete(true);
-  //         toast({
-  //           title: "Policy Analysis Complete",
-  //           description: "Your policy coverage has been successfully analyzed.",
-  //         });
-  //         return 100;
-  //       }
-  //       return prev + 10;
-  //     });
-  //   }, 300);
-  // };
-
 
   return (
     <div className="space-y-6">
