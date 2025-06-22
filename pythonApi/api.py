@@ -220,7 +220,7 @@ def extract_vehicle_details(vehicle_number):
       <soap:Body>
         <CheckIndia xmlns="http://regcheck.org.uk">
           <RegistrationNumber>{vehicle_number}</RegistrationNumber>
-          <username>niru</username>
+          <username>nutsofbengal</username>
         </CheckIndia>
       </soap:Body>
     </soap:Envelope>"""
