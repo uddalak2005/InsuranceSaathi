@@ -15,7 +15,7 @@ const InsurerDashMain = () => {
       <header className="bg-white shadow-md  px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-blue-400">
-            AI Insurance Claim Processing System
+            InsuranceSaathi
           </h1>
           <div className="flex space-x-4">
             <button
