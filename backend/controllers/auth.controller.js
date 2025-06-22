@@ -59,16 +59,6 @@ class AuthController {
                 expiresIn: '5d'
             });
 
-            //For Test
-            res.setHeader("Set-Cookie", cookie.serialize("session", token, {
-                httpOnly: true,
-                secure: false,           // Use true only in HTTPS production
-                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
-                maxAge: 60 * 60 * 24 * 5,
-                path: '/'
-            }));
-
-
 
             res.status(201).json({
                 message: "Created User Successfully",
@@ -102,16 +92,6 @@ class AuthController {
             const token = jwt.sign({ firebaseUid }, process.env.JWT_SECRET, {
                 expiresIn: '5d'
             });
-
-            //For Test
-            res.setHeader("Set-Cookie", cookie.serialize("session", token, {
-                httpOnly: true,
-                secure: false,           // Use true only in HTTPS production
-                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
-                maxAge: 60 * 60 * 24 * 5,
-                path: '/'
-            }));
-
 
 
             res.status(201).json({
@@ -165,17 +145,6 @@ class AuthController {
             const token = jwt.sign({ firebaseUid }, process.env.JWT_SECRET, {
                 expiresIn: "5d",
             });
-
-            //For Test
-            res.setHeader("Set-Cookie", cookie.serialize("session", token, {
-                httpOnly: true,
-                secure: false,           // Use true only in HTTPS production
-                sameSite: 'none',        // 🔥 Must be 'none' for cross-origin PATCH
-                maxAge: 60 * 60 * 24 * 5,
-                path: '/'
-            }));
-
-
 
             let responseUser;
 
