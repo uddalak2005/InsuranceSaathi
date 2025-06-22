@@ -1,280 +1,374 @@
-# InsuredSaathi Backend API Documentation
+# InsuranceSaathi Backend API
 
-This document provides a detailed overview of all API endpoints, their request/response formats, and required headers for the InsuredSaathi backend. Use this as a reference for frontend integration.
+A comprehensive Node.js/Express.js backend API for the InsuranceSaathi platform, providing insurance claim processing, AI-powered risk assessment, and document management services.
 
----
+## 🏗️ Project Structure
 
-## Authentication
-
-### POST `/auth/login`
-**Description:** User login with email/password or social login.
-
-**Headers:**
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "string"
-}
+```
+backend/
+├── app.js                          # Express app configuration
+├── server.js                       # Server entry point
+├── package.json                    # Dependencies and scripts
+├── vercel.json                     # Vercel deployment configuration
+├── README.md                       # This file
+├── controllers/                    # Request handlers
+│   ├── auth.controller.js         # Authentication logic
+│   ├── claim.controller.js        # Claim processing
+│   ├── checkCoverage.controller.js # Coverage verification
+│   ├── onboarding.controller.js   # User onboarding
+│   ├── upload.controller.js       # File upload handling
+│   └── insurer/                   # Insurer-specific controllers
+│       ├── claimDocs.controller.js
+│       ├── claimFetch.controller.js
+│       ├── decision.controller.js
+│       └── riskEngine.controller.js
+├── middleware/                     # Custom middleware
+│   ├── upload.middleware.js       # File upload handling
+│   └── verifyAuth.middleware.js   # JWT authentication
+├── models/                        # MongoDB schemas
+│   ├── user.model.js             # User data model
+│   ├── claim.model.js            # Claim data model
+│   ├── insurer.model.js          # Insurer data model
+│   ├── upload.model.js           # File upload model
+│   ├── checkPolicyCoverage.model.js
+│   ├── healthInsurance.model.js
+│   ├── lifeInsurance.model.js
+│   └── vehicleInsurance.model.js
+├── routes/                        # API route definitions
+│   ├── auth.routes.js            # Authentication routes
+│   ├── claim.routes.js           # Claim processing routes
+│   ├── claimCheck.routes.js      # Coverage check routes
+│   ├── insurer.routes.js         # Insurer-specific routes
+│   ├── onboarding.routes.js      # Onboarding routes
+│   └── upload.routes.js          # File upload routes
+├── services/                      # Business logic services
+│   ├── cloudinary.service.js     # Cloudinary integration
+│   └── getAIInsights.service.js  # AI insights service
+├── utils/                         # Utility functions
+│   └── handleFileUpload.js       # File upload utilities
+└── uploads/                       # Temporary file storage
 ```
 
-**Response:**
-```json
-{
-  "token": "jwt_token",
-  "user": { /* user object */ }
-}
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- MongoDB database
+- Cloudinary account (for file storage)
+- Firebase account (for authentication)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd InsuranceSaathi/backend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   Create a `.env` file in the backend directory:
+   ```env
+   PORT=3000
+   MONGO_URL=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   ```
+
+4. **Start the server**
+   ```bash
+   npm start
+   ```
+
+The server will start on `http://localhost:3000`
+
+## 📚 API Documentation
+
+### Base URL
+```
+http://localhost:3000
 ```
 
----
+### Authentication Endpoints
 
-### POST `/auth/register`
-**Description:** Register a new user.
+#### Policy Holder Authentication
 
-**Headers:**
-- `Content-Type: application/json`
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/auth/policyHolder/signUp` | Register new policy holder | No |
+| POST | `/auth/policyHolder/login` | Policy holder login | No |
+| GET | `/auth/logout` | User logout | Yes |
 
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "string",
-  "name": "string"
-}
+#### Insurer Authentication
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/auth/insurer/signUp` | Register new insurer | No |
+| POST | `/auth/insurer/login` | Insurer login | No |
+
+### Onboarding Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| PATCH | `/onboarding/policyHolder` | Complete policy holder profile | Yes |
+| PATCH | `/onboarding/insurer` | Complete insurer profile with documents | Yes |
+
+### File Upload Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/upload` | Upload single file | Yes |
+
+### Claim Coverage Check Endpoints
+
+#### Vehicle Insurance Coverage Check
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/check/vehicleInsurance` | Check vehicle insurance coverage | Yes |
+| GET | `/check/getAIScore/:id` | Get AI score for claim | Yes |
+| GET | `/check/allClaimChecks` | Get all claim checks | Yes |
+| GET | `/check/getClaim/:id` | Get specific claim check | Yes |
+
+**Required Files for Vehicle Insurance:**
+- `claimForm` (1 file)
+- `vehicleIdentity` (up to 5 files)
+- `damageImage` (up to 5 files)
+- `recipt` (1 file)
+
+#### Life Insurance Coverage Check
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/check/lifeInsurance` | Check life insurance coverage | Yes |
+
+**Required Files for Life Insurance:**
+- `insuranceClaimForm` (1 file)
+- `policyDocument` (1 file)
+- `deathCert` (1 file)
+- `hospitalDocument` (1 file)
+- `fir` (1 file)
+- `passBook` (1 file)
+
+#### Health Insurance Coverage Check
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/check/healthInsurance` | Check health insurance coverage | Yes |
+
+**Required Files for Health Insurance:**
+- `policyDocs` (1 file)
+- `finalBill` (1 file)
+- `medicalDocs` (1 file)
+
+### Claim Processing Endpoints
+
+#### Vehicle Insurance Claims
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/claim/vehicleInsurance` | Submit vehicle insurance claim | Yes |
+| PUT | `/claim/vehicleInsurance/edit/:id` | Edit vehicle insurance claim | Yes |
+
+#### Life Insurance Claims
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/claim/lifeInsurance` | Submit life insurance claim | Yes |
+| PUT | `/claim/lifeInsurance/edit/:id` | Edit life insurance claim | Yes |
+
+#### Health Insurance Claims
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/claim/healthInsurance` | Submit health insurance claim | Yes |
+| PUT | `/claim/healthInsurance/edit/:id` | Edit health insurance claim | Yes |
+
+#### General Claim Operations
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/claim/submit/:id` | Submit claim for processing | Yes |
+| GET | `/claim/getAIScore/:id` | Get AI score for claim | Yes |
+| GET | `/claim/getAllClaims` | Get all user claims | Yes |
+| GET | `/claim/getClaim/:id` | Get specific claim details | Yes |
+
+### Insurer Dashboard Endpoints
+
+#### Claim Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/insurer/getClaims` | Fetch claims based on IRDAI | Yes |
+| GET | `/insurer/getClaim/:id` | Fetch specific claim data | Yes |
+
+#### Risk Assessment
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/insurer/getFraudReport/:id` | Get AI fraud detection report | Yes |
+
+#### Document Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/insurer/getClaimDocs/:id` | Get claim documents | Yes |
+| GET | `/insurer/previewDoc/:id` | Preview document | Yes |
+| GET | `/insurer/downloadDoc/:id` | Download document | Yes |
+
+#### Decision Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/insurer/review/:id` | Set claim for review | Yes |
+| POST | `/insurer/approve/:id` | Approve claim | Yes |
+| POST | `/insurer/reject/:id` | Reject claim | Yes |
+
+## 🔐 Authentication
+
+All protected endpoints require a JWT token in the Authorization header:
+
+```
+Authorization: Bearer <jwt_token>
 ```
 
-**Response:**
+## 📁 File Upload
+
+The API supports multipart/form-data for file uploads. Files are stored in Cloudinary and references are saved in MongoDB.
+
+### Supported File Types
+- Images (JPG, PNG, GIF)
+- Documents (PDF, DOC, DOCX)
+- Maximum file size: 10MB per file
+
+## 🛠️ Technologies Used
+
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **File Storage**: Cloudinary
+- **File Upload**: Multer
+- **CORS**: Express CORS middleware
+- **Environment**: dotenv
+
+## 📦 Dependencies
+
+### Core Dependencies
+- `express`: Web framework
+- `mongoose`: MongoDB ODM
+- `jsonwebtoken`: JWT authentication
+- `multer`: File upload handling
+- `cloudinary`: Cloud file storage
+- `cors`: Cross-origin resource sharing
+- `dotenv`: Environment variable management
+
+### Additional Dependencies
+- `axios`: HTTP client
+- `cookie`: Cookie parsing
+- `firebase`: Firebase integration
+- `firebase-admin`: Firebase admin SDK
+
+## 🔧 Configuration
+
+### CORS Configuration
+The API is configured to accept requests from specific origins:
+- `http://192.168.128.13:5173`
+- `http://192.168.26.13:5173`
+- `http://192.168.72.12:5173`
+- `http://192.168.128.13:5174`
+
+### Request Limits
+- JSON payload limit: 50MB
+- URL-encoded payload limit: 50MB
+
+## 🚀 Deployment
+
+### Vercel Deployment
+The project includes `vercel.json` for easy deployment to Vercel:
+
 ```json
 {
-  "message": "Registration successful",
-  "user": { /* user object */ }
-}
-```
-
----
-
-## File Uploads
-
-### POST `/upload`
-**Description:** Upload files (images, PDFs, etc.).
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: multipart/form-data`
-
-**Form Data:**
-- `file`: File(s) to upload
-
-**Response:**
-```json
-{
-  "uploads": [
+  "version": 2,
+  "builds": [
     {
-      "_id": "string",
-      "publicId": "string",
-      "fileType": "string",
-      "originalName": "string",
-      "fieldName": "string"
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }
 ```
 
----
+## 📝 Error Handling
 
-## Onboarding
+All API responses follow a consistent error format:
 
-### POST `/onboarding`
-**Description:** Submit onboarding details.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: application/json`
-
-**Request Body:**
 ```json
 {
-  /* onboarding fields */
+  "error": "Error message description"
 }
 ```
 
-**Response:**
+## 🔍 API Response Format
+
+### Success Response
 ```json
 {
-  "message": "Onboarding successful",
-  "data": { /* onboarding data */ }
+  "message": "Operation successful",
+  "data": { /* response data */ }
 }
 ```
 
----
-
-## Claim Check
-
-### POST `/check/vehicleInsurance`
-**Description:** Check vehicle insurance claim eligibility and upload related documents.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: multipart/form-data`
-
-**Form Data:**
-- `claimForm`: File
-- `vehicleIdentity`: File(s)
-- `damageImage`: File(s)
-- `recipt`: File
-
-**Response:**
-```json
-{
-  "aiScore": 0.92,
-  "aiConfidence": 0.85,
-  "aiSuggestions": ["string", ...],
-  "claim": { /* claim data */ }
-}
-```
-
----
-
-### POST `/check/lifeInsurance`
-**Description:** Check life insurance claim eligibility and upload related documents.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: multipart/form-data`
-
-**Form Data:**
-- `claimForm`: File
-- `policyDocument`: File
-- `deathCert`: File
-- `hospitalDocument`: File
-- `fir`: File
-- `passBook`: File
-
-**Response:**
-```json
-{
-  "aiScore": 0.95,
-  "aiConfidence": 0.90,
-  "aiSuggestions": ["string", ...],
-  "claim": { /* claim data */ }
-}
-```
-
----
-
-### GET `/check/score/:id`
-**Description:** Get AI score and suggestions for a claim by ID.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-
-**Response:**
-```json
-{
-  "aiScore": 0.92,
-  "aiConfidence": 0.85,
-  "aiSuggestions": ["string", ...]
-}
-```
-
----
-
-### GET `/check/all`
-**Description:** Get all claim check data (admin only).
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-
-**Response:**
-```json
-[
-  { /* claim check data */ },
-  ...
-]
-```
-
----
-
-### GET `/check/:id`
-**Description:** Get claim check data by ID.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-
-**Response:**
-```json
-{
-  /* claim check data */
-}
-```
-
----
-
-## Claims
-
-### POST `/claim`
-**Description:** Submit a new claim.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  /* claim fields */
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Claim submitted successfully",
-  "claim": { /* claim data */ }
-}
-```
-
----
-
-### GET `/claim/:id`
-**Description:** Get claim details by ID.
-
-**Headers:**
-- `Authorization: Bearer <jwt_token>`
-
-**Response:**
-```json
-{
-  /* claim data */
-}
-```
-
----
-
-## Common Headers
-- `Authorization: Bearer <jwt_token>` (required for all protected routes)
-- `Content-Type: application/json` or `multipart/form-data` as appropriate
-
----
-
-## Error Response Format
-All error responses follow this format:
+### Error Response
 ```json
 {
   "error": "Error message"
 }
 ```
 
+## 📊 Data Models
+
+### User Model
+- Basic user information
+- Authentication details
+- Role-based access control
+
+### Claim Models
+- **Vehicle Insurance**: Vehicle-specific claim data
+- **Life Insurance**: Life insurance claim information
+- **Health Insurance**: Health insurance claim details
+
+### Insurer Model
+- Insurer company information
+- IRDAI registration details
+- Business credentials
+
+## 🔒 Security Features
+
+- JWT-based authentication
+- Role-based access control
+- File upload validation
+- CORS protection
+- Request size limiting
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.
+
+## 🆘 Support
+
+For technical support or questions, please contact the backend development team or create an issue in the repository.
+
 ---
 
-## Notes
-- All dates are in ISO 8601 format.
-- All IDs are MongoDB ObjectIds unless otherwise specified.
-- For file uploads, use the correct field names as specified in the form data.
-- Some endpoints may require admin privileges.
-
----
-
-For further details, refer to the controller and route files or contact the backend team.
+**Note**: This API is designed to work with the InsuranceSaathi frontend application. Ensure proper CORS configuration and authentication setup for production deployment. 
