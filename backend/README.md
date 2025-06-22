@@ -13,15 +13,14 @@ backend/
 ├── README.md                       # This file
 ├── controllers/                    # Request handlers
 │   ├── auth.controller.js         # Authentication logic
-│   ├── claim.controller.js        # Claim processing
 │   ├── checkCoverage.controller.js # Coverage verification
+│   ├── claim.controller.js        # Claim processing
+│   ├── insurer.claimDocs.controller.js    # Insurer document handling
+│   ├── insurer.claimFetch.controller.js   # Insurer claim fetching
+│   ├── insurer.decision.controller.js     # Insurer claim decisions
+│   ├── insurer.riskEngine.controller.js   # Insurer risk analysis
 │   ├── onboarding.controller.js   # User onboarding
-│   ├── upload.controller.js       # File upload handling
-│   └── insurer/                   # Insurer-specific controllers
-│       ├── claimDocs.controller.js
-│       ├── claimFetch.controller.js
-│       ├── decision.controller.js
-│       └── riskEngine.controller.js
+│   └── upload.controller.js       # File upload handling
 ├── middleware/                     # Custom middleware
 │   ├── upload.middleware.js       # File upload handling
 │   └── verifyAuth.middleware.js   # JWT authentication

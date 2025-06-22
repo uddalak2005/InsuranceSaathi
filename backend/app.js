@@ -14,7 +14,8 @@ const allowedOrigins = [
   "http://192.168.128.13:5173",
   "http://192.168.26.13:5173",
   "http://192.168.72.12:5173",
-  "http://192.168.128.13:5174"
+  "http://192.168.128.13:5174",
+  "https://insurance-saathi-front.vercel.app"
 ];
 
 app.use(cors({
